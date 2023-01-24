@@ -14,7 +14,7 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.views import APIView
-
+from rest_framework import viewsets
 # @csrf_exempt
 # @api_view(['GET', 'POST'])
 # def snippet_list(request):
@@ -203,50 +203,83 @@ from rest_framework import generics
 
 from rest_framework import permissions
 
-class SnippetList(generics.ListCreateAPIView):
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework import permissions
+from rest_framework import renderers
+class SnippetViewSet(viewsets.ModelViewSet):
+    """
+    This viewset automatically provides `list`, `create`, `retrieve`,
+    `update` and `destroy` actions.
+
+    Additionally we also provide an extra `highlight` action.
+    """
     queryset = Snippet.objects.all()
     serializer_class = SnippetSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly,
+                          IsOwnerOrReadOnly]
+
+    @action(detail=True, renderer_classes=[renderers.StaticHTMLRenderer])
+    def highlight(self, request, *args, **kwargs):
+        snippet = self.get_object()
+        return Response(snippet.highlighted)
+
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
 
+# class SnippetList(generics.ListCreateAPIView):
+#     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+#     queryset = Snippet.objects.all()
+#     serializer_class = SnippetSerializer
+#     def perform_create(self, serializer):
+#         serializer.save(owner=self.request.user)
 
-class SnippetDetail(generics.RetrieveUpdateDestroyAPIView):
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-    queryset = Snippet.objects.all()
-    serializer_class = SnippetSerializer
+
+# class SnippetDetail(generics.RetrieveUpdateDestroyAPIView):
+#     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+#     queryset = Snippet.objects.all()
+#     serializer_class = SnippetSerializer
     
 
- 
+
+from rest_framework import viewsets
 from django.contrib.auth.models import User 
-
-class UserList(generics.ListAPIView):
+class UserViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    This viewset automatically provides `list` and `retrieve` actions.
+    """
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
+  
 
-class UserDetail(generics.RetrieveAPIView):
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
+# class UserList(generics.ListAPIView):
+#     queryset = User.objects.all()
+#     serializer_class = UserSerializer
+
+
+# class UserDetail(generics.RetrieveAPIView):
+#     queryset = User.objects.all()
+#     serializer_class = UserSerializer
 
 from rest_framework.reverse import reverse
 
 @api_view(['GET'])
 def api_root(request, format=None):
     return Response({
-        'users': reverse('user-list', request=request, format=format),
-        'snippets': reverse('snippet-list', request=request, format=format)
+        'users': reverse('users', request=request, format=format),
+        'snippets': reverse('snippets', request=request, format=format)
     })
 
-from rest_framework import renderers
+# from rest_framework import renderers
 
-class SnippetHighlight(generics.GenericAPIView):
-    queryset = Snippet.objects.all()
-    renderer_classes = [renderers.StaticHTMLRenderer]
+# class SnippetHighlight(generics.GenericAPIView):
+#     queryset = Snippet.objects.all()
+#     renderer_classes = [renderers.StaticHTMLRenderer]
 
-    def get(self, request, *args, **kwargs):
-        snippet = self.get_object()
-        return Response(snippet.highlighted)
+#     def get(self, request, *args, **kwargs):
+#         snippet = self.get_object()
+#         return Response(snippet.highlighted)
 
 
 
@@ -257,7 +290,7 @@ from django.core.exceptions import ObjectDoesNotExist
 import pyotp
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from .models import phoneModel
+from .models import Employee, Employer, phoneModel
 import base64
 
 
@@ -276,11 +309,17 @@ class getPhoneNumberRegistered(APIView):
        
         except ObjectDoesNotExist:
             phoneModel.objects.create(
-                Mobile=phone,
+                Mobile=phone
             )
             
             user=User.objects.create(username=phone,password='')
-            
+            if   request.data['isEmployer'] is True:
+                employer=Employer.objects.create(phone=phoneModel(Mobile=phone))
+                print(employer)
+            else:
+                employee=Employee.objects.create(phone=phoneModel(Mobile=phone))
+                print(employee)
+               
             Mobile = phoneModel.objects.get(Mobile=phone)  # user Newly created Model
         Mobile.counter += 1  # Update Counter At every Call
         Mobile.save()  # Save the data
@@ -314,8 +353,8 @@ class getPhoneNumberRegistered(APIView):
             return Response({
             'refresh': str(refresh),
             'access': str(refresh.access_token),})
-            return Response("You are authorised", status=200)
-        return Response("OTP is wrong", status=400)
+            return Response("You are authorised", status=200) 
+        return Response("OTP is wrong/expired", status=400)
 
 
 # Time after which OTP will expire
@@ -325,6 +364,8 @@ class getPhoneNumberRegistered_TimeBased(APIView):
     # Get to Create a call for OTP
     @staticmethod
     def get(request, phone):
+        res= createEmployee(phone)
+        print(res)
         try:
             Mobile = phoneModel.objects.get(Mobile=phone)  # if Mobile already exists the take this else create New One
         except ObjectDoesNotExist:
@@ -343,17 +384,30 @@ class getPhoneNumberRegistered_TimeBased(APIView):
     # This Method verifies the OTP
     @staticmethod
     def post(request, phone):
+        res= createEmployee(phone)
+        print(res)
         try:
             Mobile = phoneModel.objects.get(Mobile=phone)
         except ObjectDoesNotExist:
             return Response("User does not exist", status=404)  # False Call
-
+        print(request.data['isEmployer'])
         keygen = generateKey()
         key = base64.b32encode(keygen.returnValue(phone).encode())  # Generating Key
         OTP = pyotp.TOTP(key,interval = EXPIRY_TIME)  # TOTP Model 
         if OTP.verify(request.data["otp"]):  # Verifying the OTP
             Mobile.isVerified = True
             Mobile.save()
-          
             return Response("You are authorised", status=200)
         return Response("OTP is wrong/expired", status=400)
+
+
+def createEmployee( phone):
+    # username=request.data['username']
+    e=Employee.objects.get(phoneModel(phoneModel))
+    print(e)
+    employee= Employee(phoneModel(phone))
+    print(phone)
+    employee.save()
+    print(employee)
+    
+     

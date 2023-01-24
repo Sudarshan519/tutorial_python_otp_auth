@@ -25,7 +25,9 @@ SECRET_KEY = 'django-insecure-c!$8482s*v5bigfrd$ov#4n$be4cf25zzfqq%%+17i=pubh6wk
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    "*"
+]
 
 
 # Application definition
@@ -42,6 +44,7 @@ INSTALLED_APPS = [
     'django_otp.plugins.otp_totp',
     'django_otp.plugins.otp_hotp',
     'django_otp.plugins.otp_static',
+    'rest_framework',
 ]
 
 MIDDLEWARE = [
@@ -60,7 +63,9 @@ ROOT_URLCONF = 'tutorial.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [
+            'templates'
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [

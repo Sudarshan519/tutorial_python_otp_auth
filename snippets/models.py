@@ -1,3 +1,5 @@
+ 
+from datetime import datetime
 from django.db import models
 from pygments.lexers import get_all_lexers
 from pygments.styles import get_all_styles
@@ -33,7 +35,8 @@ class Snippet(models.Model):
         super().save(*args, **kwargs)
     class Meta:
         ordering = ['created']
- 
+    def __str__(self) -> str:
+        return self.code
 
 
 # this model Stores the data of the Phones Verified
@@ -41,8 +44,52 @@ class phoneModel(models.Model):
     Mobile = models.IntegerField(blank=False)
     isVerified = models.BooleanField(blank=False, default=False)
     counter = models.IntegerField(default=0, blank=False)   # For HOTP Verification
-
+    created_at = models.DateTimeField(default=datetime.now, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
     def __str__(self):
         return str(self.Mobile)
+
+class Company(models.Model):
+    created_at = models.DateTimeField(default=datetime.now, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    company_name=models.CharField(max_length=30)
+    owner= models.OneToOneField('auth.User', related_name='owner', on_delete=models.CASCADE)
+    def __str__(self) -> str:
+        return  self.company_name
+
+class Owner(models.Model):
+    created_at = models.DateTimeField(default=datetime.now, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    user=models.ForeignKey('auth.User', related_name='owner_user', on_delete=models.CASCADE)
+    def __str__(self) -> str:
+        return  self.company_name
+
+
+class Employee(models.Model):
+    username=models.CharField(blank=True,max_length=255)
+    first_name=models.CharField(max_length=30,blank=True)
+    middle_name=models.CharField(max_length=64,default='',blank=True)
+    last_name=models.CharField(max_length=64,blank=True)
+    user = models.ForeignKey('auth.User', related_name='employee', on_delete=models.CASCADE,blank=True,null=True)
+    company=models.ForeignKey(Company,on_delete=models.CASCADE, null=True,blank=True)
+    phone=models.ForeignKey(phoneModel,on_delete=models.CASCADE,unique=True)
+    def __str__(self):
+        return str(self.phone)
+
+
+class Employer(models.Model):
+    username=models.CharField(blank=True,max_length=255)
+    first_name=models.CharField(max_length=30,blank=True)
+    last_name=models.CharField(max_length=64,blank=True)
+    user = models.ForeignKey('auth.User', related_name='employer', on_delete=models.CASCADE)
+    company=models.ForeignKey(Company,on_delete=models.CASCADE)
+    phone=models.ForeignKey(phoneModel,on_delete=models.CASCADE)
+    def __str__(self):
+        return str(self.phone)
+
+
+
+
+
 
  
