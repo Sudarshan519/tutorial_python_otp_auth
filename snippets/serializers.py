@@ -1,7 +1,6 @@
 from rest_framework import serializers
-from snippets.models import Snippet, LANGUAGE_CHOICES, STYLE_CHOICES
+from snippets.models import Snippet, LANGUAGE_CHOICES, STYLE_CHOICES,Employee,Company
 from django.contrib.auth.models import User 
-
 # class SnippetSerializer(serializers.Serializer):
 #     id = serializers.IntegerField(read_only=True)
 #     title = serializers.CharField(required=False, allow_blank=True, max_length=100)
@@ -48,6 +47,21 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
         model = User
         fields = ['url', 'id', 'username', 'snippets']
 
+class EmployeeSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model=Employee
+
+# class InvitationSerializer(serializers.Serializer):
+#     company=serializers.RelatedField(many=False,related_name='company_name') 
+#     user=serializers.OneToOneField('auth.User' )
+#     accepted=serializers.BooleanField(default=False)
+#     created_at = serializers.DateTimeField(default=datetime.now, blank=True)
+#     updated_at = serializers.DateTimeField(auto_now=True)
+
+# class CompanySerializer(serializers.Serializer):
+#     company=serializers.RelatedField(many=False,read_only=True,related_name='company_name')
+#     class Meta:
+#         model=Company
 # from django.contrib.auth.models import User
 
 # class UserSerializer(serializers.ModelSerializer):

@@ -1,5 +1,6 @@
 
 from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import api_view
 from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
@@ -243,7 +244,8 @@ class SnippetViewSet(viewsets.ModelViewSet):
 
 
 from rest_framework import viewsets
-from django.contrib.auth.models import User 
+from django.contrib.auth.models import User
+from rest_framework.authentication import SessionAuthentication, BasicAuthentication 
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
     """
     This viewset automatically provides `list` and `retrieve` actions.
@@ -290,9 +292,9 @@ from django.core.exceptions import ObjectDoesNotExist
 import pyotp
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from .models import Employee, Employer, phoneModel
+from .models import Employee, Employer, phoneModel,Invitation
 import base64
-
+import json
 
 # This class returns the string needed to generate the key
 class generateKey:
@@ -355,8 +357,6 @@ class getPhoneNumberRegistered(APIView):
             'access': str(refresh.access_token),})
             return Response("You are authorised", status=200) 
         return Response("OTP is wrong/expired", status=400)
-
-
 # Time after which OTP will expire
 EXPIRY_TIME = 50 # seconds
 
@@ -364,8 +364,8 @@ class getPhoneNumberRegistered_TimeBased(APIView):
     # Get to Create a call for OTP
     @staticmethod
     def get(request, phone):
-        res= createEmployee(phone)
-        print(res)
+        # res= createEmployee(phone)
+        # print(res)
         try:
             Mobile = phoneModel.objects.get(Mobile=phone)  # if Mobile already exists the take this else create New One
         except ObjectDoesNotExist:
@@ -384,7 +384,7 @@ class getPhoneNumberRegistered_TimeBased(APIView):
     # This Method verifies the OTP
     @staticmethod
     def post(request, phone):
-        res= createEmployee(phone)
+        # res= createEmployee(phone)
         print(res)
         try:
             Mobile = phoneModel.objects.get(Mobile=phone)
@@ -400,14 +400,37 @@ class getPhoneNumberRegistered_TimeBased(APIView):
             return Response("You are authorised", status=200)
         return Response("OTP is wrong/expired", status=400)
 
+# @authentication_classes([SessionAuthentication, BasicAuthentication])
+class CreateEmployee(APIView):
+    # authentication_classes = [SessionAuthentication, BasicAuthentication]
+    permission_classes = (IsAuthenticated,) 
+    @staticmethod
+    def get(self):
+        phone=phoneModel.objects.get(Mobile=int(self.user.username))
+        try:
+            result=Employee.objects.create(user=self.user,phone=phone)
+        
+        
+            print(result)
+        except:
+            result=Employee.objects.get(user=self.user)
+        print(self.user)
+        return Response(str(result), 200)
+from django.core import serializers
+class InvitationList(APIView):
+    permission_classes = (IsAuthenticated,) 
+    @staticmethod
+    def get(self):
+        invitations=Invitation.objects.all()
+        print(invitations)
+        data = serializers.serialize('json', Invitation.objects.all())
+        return JsonResponse(data,safe=False)
+# def createEmployee( phone):
+#     # username=request.data['username']
+#     e=Employee.objects.get(phoneModel(phoneModel))
+#     print(e)
+#     employee= Employee(phoneModel(phone))
+#     print(phone)
+#     employee.save()
+#     print(employee)
 
-def createEmployee( phone):
-    # username=request.data['username']
-    e=Employee.objects.get(phoneModel(phoneModel))
-    print(e)
-    employee= Employee(phoneModel(phone))
-    print(phone)
-    employee.save()
-    print(employee)
-    
-     

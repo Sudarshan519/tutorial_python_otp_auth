@@ -72,9 +72,9 @@ class Employee(models.Model):
     last_name=models.CharField(max_length=64,blank=True)
     user = models.ForeignKey('auth.User', related_name='employee', on_delete=models.CASCADE,blank=True,null=True)
     company=models.ForeignKey(Company,on_delete=models.CASCADE, null=True,blank=True)
-    phone=models.ForeignKey(phoneModel,on_delete=models.CASCADE,unique=True)
+    phone=models.ForeignKey(phoneModel,on_delete=models.CASCADE,unique=True,null=True)
     def __str__(self):
-        return str(self.phone)
+        return str(self.user)
 
 
 class Employer(models.Model):
@@ -88,8 +88,14 @@ class Employer(models.Model):
         return str(self.phone)
 
 
+class Invitation(models.Model):
+    company=models.ForeignKey(Company, on_delete=models.CASCADE)
+    user=models.OneToOneField('auth.User', on_delete=models.CASCADE)
+    accepted=models.BooleanField(default=False)
+    created_at = models.DateTimeField(default=datetime.now, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
-
-
+    def __str__(self):
+        return self.company.company_name +' has invited '+ self.user.username
 
  

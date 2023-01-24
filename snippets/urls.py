@@ -84,6 +84,9 @@ urlpatterns = [
         template_name='swagger-ui.html',
         extra_context={'schema_url':'127.0.0.1:8000/'}
     ), name='swagger-ui'),
+    path('api/login/<phone>',views.getPhoneNumberRegistered.as_view()),
+    path('api/employee/',views.CreateEmployee.as_view()),
+    path('api/invitations/',views.InvitationList.as_view())
 
 
 ]
