@@ -70,23 +70,30 @@ from django.views.generic import TemplateView
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from snippets import views
-
+from rest_framework_swagger.views import get_swagger_view
+schema_view = get_swagger_view(title='Pastebin API')
 # Create a router and register our viewsets with it.
 router = DefaultRouter()
 router.register(r'snippets', views.SnippetViewSet,basename="snippet")
 router.register(r'users', views.UserViewSet,basename="user")
+router.register(r'api/employee-invitations',views.InvitationList,basename='invitations')
+router.register(r'api/employee',views.Employee,basename='employee')
+router.register(r'api/employer',views.Employer,basename='employer')
+router.register(r'api/attendance',views.Attendance,basename='attendance')
+# router.register('api/employee/',views.CreateEmployee.as_view())
 
 
 # The API URLs are now determined automatically by the router.
 urlpatterns = [
-    path('', include(router.urls)),
-        path('swagger-ui/', TemplateView.as_view(
-        template_name='swagger-ui.html',
-        extra_context={'schema_url':'127.0.0.1:8000/'}
-    ), name='swagger-ui'),
+   path('', include(router.urls)),
+    # path('api/swagger-ui', schema_view),
+    #     path('swagger-ui/', TemplateView.as_view(
+    #     template_name='swagger-ui.html',
+    #     extra_context={'schema_url':"127.0.0.1:8000"}
+    # ), name='swagger-ui'),
     path('api/login/<phone>',views.getPhoneNumberRegistered.as_view()),
     path('api/employee/',views.CreateEmployee.as_view()),
-    path('api/invitations/',views.InvitationList.as_view())
+    # path('api/invitations/',views.InvitationList.as_view(),name='invitations_list')
 
 
 ]

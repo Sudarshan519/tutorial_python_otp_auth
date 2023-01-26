@@ -25,8 +25,7 @@ SECRET_KEY = 'django-insecure-c!$8482s*v5bigfrd$ov#4n$be4cf25zzfqq%%+17i=pubh6wk
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = [
-    "*"
+ALLOWED_HOSTS = [  
 ]
 
 
@@ -45,6 +44,7 @@ INSTALLED_APPS = [
     'django_otp.plugins.otp_hotp',
     'django_otp.plugins.otp_static',
     'rest_framework',
+    'rest_framework_swagger'
 ]
 
 MIDDLEWARE = [
@@ -141,7 +141,8 @@ REST_FRAMEWORK = {'DEFAULT_PERMISSION_CLASSES': [
          'rest_framework_simplejwt.authentication.JWTAuthentication','rest_framework.authentication.TokenAuthentication'
     ],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 10
+    'PAGE_SIZE': 10,
+    'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema' 
 }
 
 

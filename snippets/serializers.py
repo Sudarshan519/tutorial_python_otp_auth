@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from snippets.models import Snippet, LANGUAGE_CHOICES, STYLE_CHOICES,Employee,Company
+from snippets.models import Attendance, Employer, Invitation, Snippet, LANGUAGE_CHOICES, STYLE_CHOICES,Employee,Company,Approver
 from django.contrib.auth.models import User 
 # class SnippetSerializer(serializers.Serializer):
 #     id = serializers.IntegerField(read_only=True)
@@ -41,22 +41,82 @@ class SnippetSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
-    snippets = serializers.HyperlinkedRelatedField(many=True, view_name='snippet-detail', read_only=True)
+    # snippets = serializers.HyperlinkedRelatedField(many=True, view_name='snippet-detail', read_only=True)
 
     class Meta:
         model = User
-        fields = ['url', 'id', 'username', 'snippets']
+        fields = ['url', 'id', 'username', 'snippets'
+        ]
+
+class CompanySerializer(serializers.HyperlinkedModelSerializer):
+    company_name=serializers.CharField()
+    owner=serializers.SlugRelatedField(read_only=True,slug_field='username')
+    class Meta:
+        model=Company
+        fields=['company_name','owner','login_time','logout_time','break_start','break_end']
+    def create(self, validated_data):
+        return super().create(validated_data)
+  
 
 class EmployeeSerializer(serializers.HyperlinkedModelSerializer):
+    username= serializers.ReadOnlyField(source='user.username')
+    company=CompanySerializer('company')
     class Meta:
         model=Employee
+        fields=['url','id','first_name','middle_name','last_name','username','company']
 
-# class InvitationSerializer(serializers.Serializer):
-#     company=serializers.RelatedField(many=False,related_name='company_name') 
-#     user=serializers.OneToOneField('auth.User' )
-#     accepted=serializers.BooleanField(default=False)
-#     created_at = serializers.DateTimeField(default=datetime.now, blank=True)
-#     updated_at = serializers.DateTimeField(auto_now=True)
+class EmployerSerializer(serializers.HyperlinkedModelSerializer):
+    username=serializers.ReadOnlyField(source='user.username')
+    company=serializers.ReadOnlyField(source='company.company_name')
+
+    class Meta:
+        model=Employer
+        fields=['user','first_name', 'company']
+    # def create(self, validated_data):
+    #     return super().create(validated_data)
+# class UserSerializer(serializers.HyperlinkedRelatedField):
+#     class Meta:
+#         model:User
+#         fields=['username']
+
+
+class AttendanceSerializer(serializers.HyperlinkedModelSerializer):
+    user_detail=serializers.PrimaryKeyRelatedField(read_only=True) #// UserSerializer(source='user',)
+    class Meta:
+        model=Attendance
+        fields=['user_detail','date', 'login_time','logout_time','start_break','end_break']
+        extra_kwargs = {'user_detail': {'required': False}}
+        validators=[]
+class InvitationSerializer(serializers.Serializer):
+    accepted=serializers.BooleanField()
+    created_at=serializers.DateTimeField()
+
+    updated_at=serializers.DateTimeField()
+    username=serializers.CharField()
+    company=CompanySerializer('company')
+
+    def create(self, validated_data):
+        return super().create(validated_data)
+    # company=serializers.ReadOnlyField(source='company')
+    # company = serializers.SlugRelatedField(
+    #     # many=True,
+    #     read_only=True,
+    #     slug_field='company_name'
+    #  )
+
+
+  # class Meta:
+    #     fields=['accepted','created_at','updated_at']
+# class InvitationSerializer(serializers.HyperlinkedModelSerializer):
+#     invitations=serializers.HyperlinkedModelSerializer(many=True)
+#     class Meta:
+#         model = Invitation
+#         fields=['company_name','user','created_at']
+    # company=serializers.RelatedField(many=False,related_name='company_name') 
+    # user=serializers.OneToOneField('auth.User' )
+    # accepted=serializers.BooleanField(default=False)
+    # created_at = serializers.DateTimeField(default=datetime.now, blank=True)
+    # updated_at = serializers.DateTimeField(auto_now=True)
 
 # class CompanySerializer(serializers.Serializer):
 #     company=serializers.RelatedField(many=False,read_only=True,related_name='company_name')

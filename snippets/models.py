@@ -49,13 +49,40 @@ class phoneModel(models.Model):
     def __str__(self):
         return str(self.Mobile)
 
+
 class Company(models.Model):
     created_at = models.DateTimeField(default=datetime.now, blank=True)
     updated_at = models.DateTimeField(auto_now=True)
-    company_name=models.CharField(max_length=30)
+    company_name=models.CharField(max_length=30,null=False) 
+    login_time= models.TimeField(default="9:00:00",blank=True)
+    logout_time=models.TimeField(default="18:00:00",blank=True)
+    break_start=models.TimeField(default="13:00:00",blank=True)
+    break_end=models.TimeField(default="13:45:00",blank=True)
+
+    def approvers(self):
+        return Approver.objects.get(id=self.id)
+
+    def __str__(self) -> str:
+        return self.company_name
+    
+    def hours(self):
+        return (self.login_time-self.logout_time)-(self.break_end-self.break_start)
+
+
+class Approver(models.Model):
+    user=models.ForeignKey('auth.User',related_name='approver',on_delete=models.CASCADE)
+    company=models.ForeignKey(Company,on_delete=models.CASCADE)
+
+
+
     owner= models.OneToOneField('auth.User', related_name='owner', on_delete=models.CASCADE)
     def __str__(self) -> str:
-        return  self.company_name
+        return  self.company.company_name
+    def owner_name(self):
+        print(self.owner)
+        return self.owner
+ 
+ 
 
 class Owner(models.Model):
     created_at = models.DateTimeField(default=datetime.now, blank=True)
@@ -63,6 +90,9 @@ class Owner(models.Model):
     user=models.ForeignKey('auth.User', related_name='owner_user', on_delete=models.CASCADE)
     def __str__(self) -> str:
         return  self.company_name
+
+    def user_name(self)->str:
+        return self.user_name
 
 
 class Employee(models.Model):
@@ -80,12 +110,16 @@ class Employee(models.Model):
 class Employer(models.Model):
     username=models.CharField(blank=True,max_length=255)
     first_name=models.CharField(max_length=30,blank=True)
+    # middle_name=models.CharField(max_length=30,blank=True)
     last_name=models.CharField(max_length=64,blank=True)
     user = models.ForeignKey('auth.User', related_name='employer', on_delete=models.CASCADE)
     company=models.ForeignKey(Company,on_delete=models.CASCADE)
     phone=models.ForeignKey(phoneModel,on_delete=models.CASCADE)
     def __str__(self):
         return str(self.phone)
+    
+    def user_name(self):
+        return self.user.username
 
 
 class Invitation(models.Model):
@@ -94,8 +128,30 @@ class Invitation(models.Model):
     accepted=models.BooleanField(default=False)
     created_at = models.DateTimeField(default=datetime.now, blank=True)
     updated_at = models.DateTimeField(auto_now=True)
+    def company_name(self):
+        return self.company.company_name
+    def username(self):
+        return self.user
 
     def __str__(self):
         return self.company.company_name +' has invited '+ self.user.username
 
- 
+class Attendance(models.Model):
+    login_time=models.TimeField(blank=False,null=True)
+    logout_time=models.TimeField(blank=True,null=True)
+    user=models.ForeignKey('auth.User',on_delete=models.CASCADE)
+    date=models.DateField(auto_now=True)
+    start_break=models.TimeField(blank=True,null=True)
+    end_break=models.TimeField(blank=True,null=True)
+    def username(self):
+        return self.user.username
+    def __str__(self) -> str:
+        return self.user.username + str(self.date)
+    
+class Leave(models.Model):
+    date=models.DateField(blank=False)
+    user=models.ForeignKey('auth.User',on_delete=models.CASCADE)
+    reason=models.CharField(max_length=255)
+    type=models.CharField(max_length=60)
+    
+

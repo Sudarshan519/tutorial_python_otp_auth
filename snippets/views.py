@@ -8,7 +8,7 @@ from django.views.decorators.csrf import csrf_exempt
 from rest_framework.parsers import JSONParser
 from snippets.models import Snippet
 from snippets.permissions import IsOwnerOrReadOnly
-from snippets.serializers import SnippetSerializer, UserSerializer
+from snippets.serializers import AttendanceSerializer, EmployeeSerializer, EmployerSerializer, InvitationSerializer, SnippetSerializer, UserSerializer
 
 
 from rest_framework import status
@@ -255,6 +255,8 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
 
   
 
+
+
 # class UserList(generics.ListAPIView):
 #     queryset = User.objects.all()
 #     serializer_class = UserSerializer
@@ -384,8 +386,7 @@ class getPhoneNumberRegistered_TimeBased(APIView):
     # This Method verifies the OTP
     @staticmethod
     def post(request, phone):
-        # res= createEmployee(phone)
-        print(res)
+        # res= createEmployee(phone) 
         try:
             Mobile = phoneModel.objects.get(Mobile=phone)
         except ObjectDoesNotExist:
@@ -417,14 +418,51 @@ class CreateEmployee(APIView):
         print(self.user)
         return Response(str(result), 200)
 from django.core import serializers
-class InvitationList(APIView):
-    permission_classes = (IsAuthenticated,) 
-    @staticmethod
-    def get(self):
-        invitations=Invitation.objects.all()
-        print(invitations)
-        data = serializers.serialize('json', Invitation.objects.all())
-        return JsonResponse(data,safe=False)
+class Employee(viewsets.ModelViewSet):
+    # permission_classes=(IsAuthenticated)
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly,
+                           ]
+    queryset=Employee.objects.all()
+    serializer_class=EmployeeSerializer
+
+
+
+class Employer(viewsets.ModelViewSet):
+    # permission_classes=(IsAuthenticated)
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly,]
+    queryset=Employer.objects.all()
+    serializer_class=EmployerSerializer
+
+from .models import Attendance
+class Attendance(viewsets.ModelViewSet):
+    permission_classes=[permissions.IsAuthenticatedOrReadOnly,]
+    queryset=Attendance .objects.all()
+    serializer_class = AttendanceSerializer
+    def perform_create(self, serializer):
+        print(self.request.user)
+        serializer.save(user=self.request.user) 
+class InvitationList(viewsets.ModelViewSet):
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly,]
+    queryset = Invitation.objects.all()
+    serializer_class = InvitationSerializer
+    # def perform_create(self, serializer):
+    #     print(self.request.user)
+    #     serializer.save(user_detail=self.request.user) 
+    # @staticmethod
+    # def get(request):
+    #     invitations=Invitation.objects.all()
+    #     print(invitations)
+    #     invitation_serializer= InvitationSerializer(invitations,many=True)
+    #     data=invitation_serializer.data
+    #     # print(data)
+    #     # data = serializers.serialize('json',Invitation.objects.all())
+    #     return JsonResponse( data,safe=False)
+    # @staticmethod
+    # def post(request):
+    #     print(request.body)
+    #     return JsonResponse(request.data,safe=False)
+
+
 # def createEmployee( phone):
 #     # username=request.data['username']
 #     e=Employee.objects.get(phoneModel(phoneModel))
