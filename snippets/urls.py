@@ -70,15 +70,15 @@ from django.views.generic import TemplateView
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from snippets import views
-from rest_framework_swagger.views import get_swagger_view
-schema_view = get_swagger_view(title='Pastebin API')
+# from rest_framework_swagger.views import get_swagger_view
+# schema_view = get_swagger_view(title='Pastebin API')
 # Create a router and register our viewsets with it.
 router = DefaultRouter()
 router.register(r'snippets', views.SnippetViewSet,basename="snippet")
 router.register(r'users', views.UserViewSet,basename="user")
 router.register(r'api/employee-invitations',views.InvitationList,basename='invitations')
 router.register(r'api/employee',views.Employee,basename='employee')
-router.register(r'api/employer',views.Employer,basename='employer')
+router.register(r'api/employer',views.EmployerV,basename='employer')
 router.register(r'api/attendance',views.Attendance,basename='attendance')
 # router.register('api/employee/',views.CreateEmployee.as_view())
 

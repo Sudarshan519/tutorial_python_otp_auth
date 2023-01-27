@@ -45,14 +45,35 @@ class Snippet(models.Model):
 
 # this model Stores the data of the Phones Verified
 class phoneModel(models.Model):
-    Mobile = models.IntegerField(blank=False)
+    Mobile = models.IntegerField(blank=False,unique=True)
     isVerified = models.BooleanField(blank=False, default=False)
     counter = models.IntegerField(default=0, blank=False)   # For HOTP Verification
     created_at = models.DateTimeField(default=datetime.now, blank=True)
     updated_at = models.DateTimeField(auto_now=True)
     def __str__(self):
         return str(self.Mobile)
+class Employer(models.Model):
+    username=models.CharField(blank=True,max_length=255)
+    first_name=models.CharField(max_length=30,blank=True)
+    # middle_name=models.CharField(max_length=30,blank=True)
+    last_name=models.CharField(max_length=64,blank=True)
+    
+    user = models.ForeignKey('auth.User', related_name='employer', on_delete=models.CASCADE,null=True,blank=True,unique=True)
+    # company=models.ForeignKey(Company,on_delete=models.CASCADE,blank=True,null=True)
+    phone=models.OneToOneField(phoneModel,on_delete=models.CASCADE,null=True,blank=True,unique=True)
+    def __str__(self):
+        return str(self.phone)
+    
+    # def user_name(self):
+    #     return self.user.username
 
+    # def company_details(self):
+    #     return str(self.company_set.all())
+
+    # def employer_details(self):
+    #     return model_to_dict(self.user,fields=['id','username','email','is_staff','date_joined','groups','user_permissions'])
+    # def company_list(self):
+    #     return self.company_set.all()[:1]
 
 class Company(models.Model):
     created_at = models.DateTimeField(default=datetime.now, blank=True)
@@ -62,29 +83,27 @@ class Company(models.Model):
     logout_time=models.TimeField(default="18:00:00",blank=True)
     break_start=models.TimeField(default="13:00:00",blank=True)
     break_end=models.TimeField(default="13:45:00",blank=True)
-
-    def approvers(self):
-        return Approver.objects.get(id=self.id)
+    employer=models.ForeignKey(Employer, on_delete=models.CASCADE,null=True,blank=True)
+    # def approvers(self):
+    #     return Approver.objects.get(id=self.id)
 
     def __str__(self) -> str:
-        return self.company_name
+        return self.company_name+ ' created by ' + self.employer.user.username
     
     def hours(self):
         return (self.login_time-self.logout_time)-(self.break_end-self.break_start)
 
 
-class Approver(models.Model):
-    user=models.ForeignKey('auth.User',related_name='approver',on_delete=models.CASCADE)
-    company=models.ForeignKey(Company,on_delete=models.CASCADE)
-
-
-
-    owner= models.OneToOneField('auth.User', related_name='owner', on_delete=models.CASCADE)
-    def __str__(self) -> str:
-        return  self.company.company_name
-    def owner_name(self):
-        print(self.owner)
-        return self.owner
+# class Approver(models.Model):
+#     user=models.ForeignKey('auth.User',related_name='approver',on_delete=models.CASCADE)
+#     company=models.ForeignKey(Company,on_delete=models.CASCADE)
+#     employer=models.ForeignKey(Employer,on_delete=models.CASCADE)
+    # owner= models.OneToOneField('auth.User', related_name='owner', on_delete=models.CASCADE)
+#     def __str__(self) -> str:
+#         return  self.company.company_name
+#     def owner_name(self):
+#         print(self.owner)
+#         return self.owner
  
  
 
@@ -104,6 +123,7 @@ class Employee(models.Model):
     first_name=models.CharField(max_length=30,blank=True)
     middle_name=models.CharField(max_length=64,default='',blank=True)
     last_name=models.CharField(max_length=64,blank=True)
+    employer=models.ForeignKey(Employer, on_delete=models.CASCADE,null=True,blank=True)
     user = models.ForeignKey('auth.User', related_name='employee', on_delete=models.CASCADE,blank=True,null=True)
     company=models.ForeignKey(Company,on_delete=models.CASCADE, null=True,blank=True)
     phone=models.OneToOneField(phoneModel,on_delete=models.CASCADE,unique=True,null=True)
@@ -112,25 +132,6 @@ class Employee(models.Model):
     def company_details(self):
         return model_to_dict(self.company)
 
-class Employer(models.Model):
-    username=models.CharField(blank=True,max_length=255)
-    first_name=models.CharField(max_length=30,blank=True)
-    # middle_name=models.CharField(max_length=30,blank=True)
-    last_name=models.CharField(max_length=64,blank=True)
-    user = models.ForeignKey('auth.User', related_name='employer', on_delete=models.CASCADE)
-    company=models.ForeignKey(Company,on_delete=models.CASCADE)
-    phone=models.ForeignKey(phoneModel,on_delete=models.CASCADE)
-    def __str__(self):
-        return str(self.phone)
-    
-    def user_name(self):
-        return self.user.username
-
-    def company_details(self):
-        return model_to_dict(self.company)
-
-    def employer_details(self):
-        return model_to_dict(self.user,fields=['id','username','email','is_staff','date_joined','groups','user_permissions'])
 
 class Invitation(models.Model):
     company=models.ForeignKey(Company, on_delete=models.CASCADE)
@@ -158,7 +159,7 @@ class Attendance(models.Model):
     def username(self):
         return self.user.username
     def __str__(self) -> str:
-        return self.user.username + str(self.date)
+        return self.user.username +" "+ str(self.date)
     def dict(self):
         return model_to_dict(self.user,fields=['username','first_name','last_name','email','date_joined','is_active'#,'last_login'
         ,'user_permissions','groups'])

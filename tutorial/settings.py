@@ -44,7 +44,7 @@ INSTALLED_APPS = [
     'django_otp.plugins.otp_hotp',
     'django_otp.plugins.otp_static',
     'rest_framework',
-    'rest_framework_swagger'
+    # 'rest_framework_swagger'
 ]
 
 MIDDLEWARE = [

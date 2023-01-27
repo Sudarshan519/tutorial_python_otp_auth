@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from snippets.models import Attendance, Employer, Invitation, Snippet, LANGUAGE_CHOICES, STYLE_CHOICES,Employee,Company,Approver
+from snippets.models import Attendance, Employer, Invitation, Snippet, LANGUAGE_CHOICES, STYLE_CHOICES,Employee,Company#,Approver
 from django.contrib.auth.models import User 
 # class SnippetSerializer(serializers.Serializer):
 #     id = serializers.IntegerField(read_only=True)

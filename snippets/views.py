@@ -314,26 +314,51 @@ class getPhoneNumberRegistered(APIView):
 
         try:
             Mobile = phoneModel.objects.get(Mobile=phone)  # if Mobile already exists the take this else create New One
-       
+      
+            try:
+                user=User.objects.get(username=str(phone))
+                # if(Employer.objects.get(username=phone).DoesNotExist):
+                try:
+                    employer=Employer.objects.get(user=user)
+                    print(employer.company_set.all())
+                    print(employer.company_list)
+                    
+                except ObjectDoesNotExist:
+                    empoyer=Employer.objects.create(phone=Mobile,user=user,username=user.username)
+
+                    print('employer does not exist')
+            except ObjectDoesNotExist:
+                user=User.objects.create(username=phone)
+                print('user does not exist')
         except ObjectDoesNotExist:
-            phoneModel.objects.create(
+            print("mobile does not exist")
+            phoneObj=phoneModel.objects.create(
                 Mobile=phone
             )
-            
-            user=User.objects.create(username=phone,password='')
-            print("user created")
-            if   request.data['isEmployer'] is True:
-                print(request.data['isEmployer'])
-                user=User.objects.get(username='auth.AuthUrls')
-                employer=Employer.objects.create(phone=phoneModel(Mobile=phone),)
-                print(employer)
-            else:
-                employee=Employee.objects.create(phone=phoneModel(Mobile=phone))
-                print(employee)
+            # print(phoneObj)
+            user=User.objects.create(username=phone)
+            employer=Employer(phone=phoneObj,user=user)
+            # # user=User.objects.create(username=phone,password='')
+            # print("user created")
+            # if request.data['isEmployer'] is True:
+            #     print(request.data['isEmployer'])
+                
+            #     if(len(Employer.objects.get(user=user))==1):
+
+                    
+
+            #         employer.save()
+            #         print(employer)
+            #     else:
+            #         print('employee exists')
+            # else:
+            #     # employee=Employee.objects.create(phone=phoneModel(Mobile=phone))
+            #     print("employee")
                
-            Mobile = phoneModel.objects.get(Mobile=phone)  # user Newly created Model
+            # Mobile = phoneModel.objects.get(Mobile=phone)  # user Newly created Model
         Mobile.counter += 1  # Update Counter At every Call
         Mobile.save()  # Save the data
+        # Employer.objects.create()
         keygen = generateKey()
         key = base64.b32encode(keygen.returnValue(phone).encode())  # Key is generated
         OTP = pyotp.HOTP(key)  # HOTP Model for OTP is created
@@ -439,7 +464,7 @@ class Employee(viewsets.ModelViewSet):
 
 
 
-class Employer(viewsets.ModelViewSet):
+class EmployerV(viewsets.ModelViewSet):
     # permission_classes=(IsAuthenticated)
     permission_classes = [permissions.IsAuthenticatedOrReadOnly,]
     queryset=Employer.objects.all()
