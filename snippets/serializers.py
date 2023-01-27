@@ -53,7 +53,7 @@ class CompanySerializer(serializers.HyperlinkedModelSerializer):
     owner=serializers.SlugRelatedField(read_only=True,slug_field='username')
     class Meta:
         model=Company
-        fields=['company_name','owner','login_time','logout_time','break_start','break_end']
+        fields=['url','company_name','owner','login_time','logout_time','break_start','break_end','hours']
     def create(self, validated_data):
         return super().create(validated_data)
   
@@ -64,14 +64,17 @@ class EmployeeSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model=Employee
         fields=['url','id','first_name','middle_name','last_name','username','company']
-
+    def create(self, validated_data):
+        return super().create(validated_data)
+  
 class EmployerSerializer(serializers.HyperlinkedModelSerializer):
     # username=serializers.ReadOnlyField(source='user.username')
     # company=serializers.ReadOnlyField(source='company.company_name')
 
     class Meta:
         model=Employer
-        fields=['user','first_name', 'company_details','employer_details']
+        fields=['user','first_name'#, 'company_details'
+        ,'employer_details']
 
  
     # def create(self, validated_data):
@@ -86,27 +89,33 @@ class EmployerSerializer(serializers.HyperlinkedModelSerializer):
 #     def to_representation(self, value):
 #         return UserSerializer(value)
 class AttendanceSerializer(serializers.HyperlinkedModelSerializer):
-    user_detail=  serializers.ReadOnlyField(source='dict')#.__dict__
+    #user_detail=  serializers.ReadOnlyField(source='dict')#.__dict__
     # user_detail= UserSerializer(source='user',)#serializers.PrimaryKeyRelatedField(read_only=True) #
+    employee_detail=EmployeeSerializer(source='employee')
     class Meta:
         model=Attendance
-        fields=['id','user_name','date', 'login_time','logout_time','start_break','end_break',
+        fields=[ 'url','id',#'user_name',
+        # 'dict',
+      'employee_detail',
+        'date', 'login_time','logout_time','start_break','end_break',
         # 'created_at'
-        #'user_detail'
+        # 'user_detail'
         ]
         # extra_kwargs = {'user_detail': {'required': False}}
         validators=[]
-class InvitationSerializer(serializers.Serializer):
-    accepted=serializers.BooleanField()
-    created_at=serializers.DateTimeField()
+class InvitationSerializer(serializers.HyperlinkedModelSerializer):
+    # accepted=serializers.BooleanField()
+    # created_at=serializers.DateTimeField()
+    # options=serializers.HyperlinkedRelatedField(view_name='invitation')
+    # updated_at=serializers.DateTimeField()
+    # username=serializers.CharField()
+    # company=CompanySerializer('company')
 
-    updated_at=serializers.DateTimeField()
-    username=serializers.CharField()
-    company=CompanySerializer('company')
-
-    def create(self, validated_data):
-        return super().create(validated_data)
-
+    # def create(self, validated_data):
+    #     return super().create(validated_data)
+    class Meta:
+        model=Invitation
+        fields=['id', 'accepted','created_at','updated_at','url']
     # def to_representation(self, instance):
     #     return super().to_representation(instance)
     # company=serializers.ReadOnlyField(source='company')
@@ -117,8 +126,7 @@ class InvitationSerializer(serializers.Serializer):
     #  )
 
 
-  # class Meta:
-    #     fields=['accepted','created_at','updated_at']
+   
 # class InvitationSerializer(serializers.HyperlinkedModelSerializer):
 #     invitations=serializers.HyperlinkedModelSerializer(many=True)
 #     class Meta:

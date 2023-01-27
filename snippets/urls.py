@@ -76,10 +76,11 @@ from snippets import views
 router = DefaultRouter()
 router.register(r'snippets', views.SnippetViewSet,basename="snippet")
 router.register(r'users', views.UserViewSet,basename="user")
-router.register(r'api/employee-invitations',views.InvitationList,basename='invitations')
-router.register(r'api/employee',views.Employee,basename='employee')
+router.register(r'api/invitation',views.InvitationV,basename='invitation')
+router.register(r'api/employee',views.EmployeeV,basename='employee')
 router.register(r'api/employer',views.EmployerV,basename='employer')
 router.register(r'api/attendance',views.Attendance,basename='attendance')
+router.register(r'api/company',views.CompanyV,basename='company')
 # router.register('api/employee/',views.CreateEmployee.as_view())
 
 

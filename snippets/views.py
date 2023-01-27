@@ -321,7 +321,7 @@ class getPhoneNumberRegistered(APIView):
                 try:
                     employer=Employer.objects.get(user=user)
                     print(employer.company_set.all())
-                    print(employer.company_list)
+                    # print(employer.company_list)
                     
                 except ObjectDoesNotExist:
                     empoyer=Employer.objects.create(phone=Mobile,user=user,username=user.username)
@@ -455,7 +455,7 @@ class CreateEmployee(APIView):
         print(self.user)
         return Response(str(result), 200)
 from django.core import serializers
-class Employee(viewsets.ModelViewSet):
+class EmployeeV(viewsets.ModelViewSet):
     # permission_classes=(IsAuthenticated)
     permission_classes = [permissions.IsAuthenticatedOrReadOnly,
                            ]
@@ -479,10 +479,20 @@ class Attendance(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         print(self.request.user)
         serializer.save(user=self.request.user) 
-class InvitationList(viewsets.ModelViewSet):
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly,]
+
+class InvitationV(viewsets.ModelViewSet):
+    
+    permission_classes(permissions.IsAuthenticatedOrReadOnly)
+    # permission_classes = [permissions.IsAuthenticatedOrReadOnly,]
     queryset = Invitation.objects.all()
     serializer_class = InvitationSerializer
+    def perform_create(self, serializer):
+        print(self.request.user)
+        serializer.save(user=self.request.user) 
+# class InvitationList(viewsets.ModelViewSet):
+#     permission_classes = [permissions.IsAuthenticatedOrReadOnly,]
+#     queryset = Invitation.objects.all()
+#     serializer_class = InvitationSerializer
     # def perform_create(self, serializer):
     #     print(self.request.user)
     #     serializer.save(user_detail=self.request.user) 
@@ -500,7 +510,10 @@ class InvitationList(viewsets.ModelViewSet):
     #     print(request.body)
     #     return JsonResponse(request.data,safe=False)
 
-
+# class EmployerV(viewsets.ModelViewSet):
+#     permission_classes = [permissions.IsAuthenticatedOrReadOnly,]
+#     queryset=Employer.objects.get(user='auth.User')
+#     serializer_class=EmployerSerializer
 # def createEmployee( phone):
 #     # username=request.data['username']
 #     e=Employee.objects.get(phoneModel(phoneModel))
@@ -509,4 +522,10 @@ class InvitationList(viewsets.ModelViewSet):
 #     print(phone)
 #     employee.save()
 #     print(employee)
+from .models import Company
+from .serializers import CompanySerializer
 
+class CompanyV(viewsets.ModelViewSet):
+    permission_classes(permissions.IsAuthenticatedOrReadOnly)
+    queryset = Company.objects.all()
+    serializer_class=CompanySerializer
