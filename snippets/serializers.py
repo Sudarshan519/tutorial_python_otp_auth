@@ -33,10 +33,10 @@ from django.contrib.auth.models import User
 class SnippetSerializer(serializers.HyperlinkedModelSerializer):
     owner = serializers.ReadOnlyField(source='owner.username')
     highlight = serializers.HyperlinkedIdentityField(view_name='snippet-highlight', format='html')
-
+    # owner_detail=serializers.ReadOnlyField(source='owner_detail')
     class Meta:
         model = Snippet
-        fields = ['url', 'id', 'highlight', 'owner',
+        fields = ['url', 'id', 'highlight', 'owner','owner_detail',
                   'title', 'code', 'linenos', 'language', 'style']
 
 
@@ -45,7 +45,7 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = User
-        fields = ['url', 'id', 'username', 'snippets'
+        fields = ['url', 'id', 'username', 'snippets','email','date_joined','is_staff'
         ]
 
 class CompanySerializer(serializers.HyperlinkedModelSerializer):
@@ -66,12 +66,14 @@ class EmployeeSerializer(serializers.HyperlinkedModelSerializer):
         fields=['url','id','first_name','middle_name','last_name','username','company']
 
 class EmployerSerializer(serializers.HyperlinkedModelSerializer):
-    username=serializers.ReadOnlyField(source='user.username')
-    company=serializers.ReadOnlyField(source='company.company_name')
+    # username=serializers.ReadOnlyField(source='user.username')
+    # company=serializers.ReadOnlyField(source='company.company_name')
 
     class Meta:
         model=Employer
-        fields=['user','first_name', 'company']
+        fields=['user','first_name', 'company_details','employer_details']
+
+ 
     # def create(self, validated_data):
     #     return super().create(validated_data)
 # class UserSerializer(serializers.HyperlinkedRelatedField):
@@ -79,13 +81,20 @@ class EmployerSerializer(serializers.HyperlinkedModelSerializer):
 #         model:User
 #         fields=['username']
 
-
+# class CustomUserSerializer(serializers.RelatedField):
+#     # users=UserSerializer(users)
+#     def to_representation(self, value):
+#         return UserSerializer(value)
 class AttendanceSerializer(serializers.HyperlinkedModelSerializer):
-    user_detail=serializers.PrimaryKeyRelatedField(read_only=True) #// UserSerializer(source='user',)
+    user_detail=  serializers.ReadOnlyField(source='dict')#.__dict__
+    # user_detail= UserSerializer(source='user',)#serializers.PrimaryKeyRelatedField(read_only=True) #
     class Meta:
         model=Attendance
-        fields=['user_detail','date', 'login_time','logout_time','start_break','end_break']
-        extra_kwargs = {'user_detail': {'required': False}}
+        fields=['id','user_name','date', 'login_time','logout_time','start_break','end_break',
+        # 'created_at'
+        #'user_detail'
+        ]
+        # extra_kwargs = {'user_detail': {'required': False}}
         validators=[]
 class InvitationSerializer(serializers.Serializer):
     accepted=serializers.BooleanField()
@@ -97,6 +106,9 @@ class InvitationSerializer(serializers.Serializer):
 
     def create(self, validated_data):
         return super().create(validated_data)
+
+    # def to_representation(self, instance):
+    #     return super().to_representation(instance)
     # company=serializers.ReadOnlyField(source='company')
     # company = serializers.SlugRelatedField(
     #     # many=True,

@@ -1,6 +1,7 @@
  
 from datetime import datetime
 from django.db import models
+from django.forms import model_to_dict
 from pygments.lexers import get_all_lexers
 from pygments.styles import get_all_styles
 from pygments.lexers import get_lexer_by_name
@@ -38,6 +39,9 @@ class Snippet(models.Model):
     def __str__(self) -> str:
         return self.code
 
+    def owner_detail(self):
+        return model_to_dict(self.owner,fields=['username','first_name','last_name','email','date_joined','is_active'#,'last_login'
+        ,'user_permissions','groups'])
 
 # this model Stores the data of the Phones Verified
 class phoneModel(models.Model):
@@ -102,10 +106,11 @@ class Employee(models.Model):
     last_name=models.CharField(max_length=64,blank=True)
     user = models.ForeignKey('auth.User', related_name='employee', on_delete=models.CASCADE,blank=True,null=True)
     company=models.ForeignKey(Company,on_delete=models.CASCADE, null=True,blank=True)
-    phone=models.ForeignKey(phoneModel,on_delete=models.CASCADE,unique=True,null=True)
+    phone=models.OneToOneField(phoneModel,on_delete=models.CASCADE,unique=True,null=True)
     def __str__(self):
         return str(self.user)
-
+    def company_details(self):
+        return model_to_dict(self.company)
 
 class Employer(models.Model):
     username=models.CharField(blank=True,max_length=255)
@@ -121,6 +126,11 @@ class Employer(models.Model):
     def user_name(self):
         return self.user.username
 
+    def company_details(self):
+        return model_to_dict(self.company)
+
+    def employer_details(self):
+        return model_to_dict(self.user,fields=['id','username','email','is_staff','date_joined','groups','user_permissions'])
 
 class Invitation(models.Model):
     company=models.ForeignKey(Company, on_delete=models.CASCADE)
@@ -143,11 +153,15 @@ class Attendance(models.Model):
     date=models.DateField(auto_now=True)
     start_break=models.TimeField(blank=True,null=True)
     end_break=models.TimeField(blank=True,null=True)
+    # created_at = models.DateTimeField(default=datetime.now, blank=True)
+    # updated_at = models.DateTimeField(auto_now=True)
     def username(self):
         return self.user.username
     def __str__(self) -> str:
         return self.user.username + str(self.date)
-    
+    def dict(self):
+        return model_to_dict(self.user,fields=['username','first_name','last_name','email','date_joined','is_active'#,'last_login'
+        ,'user_permissions','groups'])
 class Leave(models.Model):
     date=models.DateField(blank=False)
     user=models.ForeignKey('auth.User',on_delete=models.CASCADE)
