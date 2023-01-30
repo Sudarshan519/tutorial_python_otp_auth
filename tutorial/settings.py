@@ -44,6 +44,8 @@ INSTALLED_APPS = [
     'django_otp.plugins.otp_hotp',
     'django_otp.plugins.otp_static',
     'rest_framework',
+    #    'django.contrib.staticfiles',  # required for serving swagger ui's css/js files
+   'drf_yasg',
     'rest_framework_swagger'
 ]
 

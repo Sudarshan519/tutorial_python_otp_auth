@@ -7,6 +7,7 @@ from pygments.styles import get_all_styles
 from pygments.lexers import get_lexer_by_name
 from pygments.formatters.html import HtmlFormatter
 from pygments import highlight
+from rest_framework import serializers
 LEXERS = [item for item in get_all_lexers() if item[1]]
 LANGUAGE_CHOICES = sorted([(item[1][0], item[0]) for item in LEXERS])
 STYLE_CHOICES = sorted([(item, item) for item in get_all_styles()])
@@ -158,10 +159,17 @@ class Attendance(models.Model):
     def username(self):
         return self.user.username
     def __str__(self) -> str:
-        return self.user.username + str(self.date)
+        return self.user.username+" " + str(self.date)
     def dict(self):
         return model_to_dict(self.user,fields=['username','first_name','last_name','email','date_joined','is_active'#,'last_login'
         ,'user_permissions','groups'])
+
+    def checkIfValid(self):
+
+        raise serializers.ValidationError('* Required')
+    
+ 
+
 class Leave(models.Model):
     date=models.DateField(blank=False)
     user=models.ForeignKey('auth.User',on_delete=models.CASCADE)

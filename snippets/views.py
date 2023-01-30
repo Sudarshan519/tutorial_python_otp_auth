@@ -429,7 +429,8 @@ class CreateEmployee(APIView):
             result=Employee.objects.get(user=self.user)
         print(self.user)
         return Response(str(result), 200)
-from django.core import serializers
+# from django.core import serializers
+from rest_framework import serializers
 class Employee(viewsets.ModelViewSet):
     # permission_classes=(IsAuthenticated)
     permission_classes = [permissions.IsAuthenticatedOrReadOnly,
@@ -447,13 +448,35 @@ class Employer(viewsets.ModelViewSet):
 
 from .models import Attendance
 from django.db import connection
-class Attendance(viewsets.ModelViewSet):
+class AttendanceV(viewsets.ModelViewSet):
     permission_classes=[permissions.IsAuthenticatedOrReadOnly,]
     queryset=Attendance.objects.all().order_by('login_time')
     serializer_class = AttendanceSerializer
     def perform_create(self, serializer):
-        print(self.request.user)
-        serializer.save(user=self.request.user) 
+        # print(self.request.user)
+        try:
+            date=datetime.now()
+            dateF=(date.strftime('%Y-%m-%d'))#T%H:%M:%S.%f%z
+            # print(str(datetime.now()))
+            attendance=Attendance.objects.get(date= (dateF ),user=self.request.user)
+            # print(attendance)
+            if self.request.method=="POST":
+                raise serializers.ValidationError({"duplicate_login":"User already logged in."},401)
+            else:
+                serializer.save(user=self.request.user)        
+        except ObjectDoesNotExist:
+            # print(self.request.body)
+            serializer.save(user=self.request.user) 
+        
+       
+        
+    # def get_queryset(self, request):
+    #     max_ids_subquery = Attendance.objects.values('date', ').annotate(max_id=Max('id')).values('max_id')
+
+    #     queryset = Attendance.objects.filter(id__in=max_ids_subquery)
+
+    #     return queryset
+    
 class InvitationList(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly,]
     queryset = Invitation.objects.all()

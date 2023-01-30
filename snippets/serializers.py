@@ -1,6 +1,8 @@
 from rest_framework import serializers
 from snippets.models import Attendance, Employer, Invitation, Snippet, LANGUAGE_CHOICES, STYLE_CHOICES,Employee,Company,Approver
 from django.contrib.auth.models import User 
+from rest_framework.validators import UniqueForDateValidator
+from rest_framework.validators import UniqueTogetherValidator
 # class SnippetSerializer(serializers.Serializer):
 #     id = serializers.IntegerField(read_only=True)
 #     title = serializers.CharField(required=False, allow_blank=True, max_length=100)
@@ -86,16 +88,20 @@ class EmployerSerializer(serializers.HyperlinkedModelSerializer):
 #     def to_representation(self, value):
 #         return UserSerializer(value)
 class AttendanceSerializer(serializers.HyperlinkedModelSerializer):
-    user_detail=  serializers.ReadOnlyField(source='dict')#.__dict__
+    # user_detail=  serializers.ReadOnlyField(source='dict')#.__dict__
     # user_detail= UserSerializer(source='user',)#serializers.PrimaryKeyRelatedField(read_only=True) #
     class Meta:
         model=Attendance
-        fields=['id','user_name','date', 'login_time','logout_time','start_break','end_break',
+        fields=['id',#,'user_name',
+        'username',
+        'date', 'login_time','logout_time','start_break','end_break',
         # 'created_at'
         #'user_detail'
         ]
         # extra_kwargs = {'user_detail': {'required': False}}
-        validators=[]
+        # validators=[UniqueTogetherValidator(
+        #     queryset=Attendance.objects.all(),
+        #     fields=('date','username'))]
 class InvitationSerializer(serializers.Serializer):
     accepted=serializers.BooleanField()
     created_at=serializers.DateTimeField()
