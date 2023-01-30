@@ -10,7 +10,7 @@ from pygments import highlight
 LEXERS = [item for item in get_all_lexers() if item[1]]
 LANGUAGE_CHOICES = sorted([(item[1][0], item[0]) for item in LEXERS])
 STYLE_CHOICES = sorted([(item, item) for item in get_all_styles()])
-
+from rest_framework import serializers
 
 class Snippet(models.Model):
     created = models.DateTimeField(auto_now_add=True)
@@ -57,8 +57,8 @@ class Employer(models.Model):
     first_name=models.CharField(max_length=30,blank=True)
     # middle_name=models.CharField(max_length=30,blank=True)
     last_name=models.CharField(max_length=64,blank=True)
-    
-    user = models.ForeignKey('auth.User', related_name='employer', on_delete=models.CASCADE,null=True,blank=True,unique=True)
+    # companies=models.ForeignKey(Company, on_delete=models.CasCADE)
+    user = models.OneToOneField('auth.User', related_name='employer', on_delete=models.CASCADE,null=True,blank=True,unique=True)
     # company=models.ForeignKey(Company,on_delete=models.CASCADE,blank=True,null=True)
     phone=models.OneToOneField(phoneModel,on_delete=models.CASCADE,null=True,blank=True,unique=True)
     def __str__(self):
@@ -67,6 +67,7 @@ class Employer(models.Model):
     def user_name(self):
         return self.user.username
     
+
     # def company_details(self):
     #     return model_to_dict(self.company)
     def company_details(self):
@@ -85,28 +86,50 @@ class Employer(models.Model):
         return all
     def employer_details(self):
         return model_to_dict(self.user,fields=['id','username','email','is_staff','date_joined','groups','user_permissions'])
-
+    def companies(self):
+        list= self.company_set.all()
+        return list
 
 class Company(models.Model):
-    created_at = models.DateTimeField(default=datetime.now, blank=True)
+    created_at = models.DateTimeField(default=datetime.now, )
     updated_at = models.DateTimeField(auto_now=True)
-    company_name=models.CharField(max_length=30,null=False) 
-    login_time= models.TimeField(default="9:00:00",blank=True)
-    logout_time=models.TimeField(default="18:00:00",blank=True)
-    break_start=models.TimeField(default="13:00:00",blank=True)
-    break_end=models.TimeField(default="13:45:00",blank=True)
-    employer=models.ForeignKey(Employer, on_delete=models.CASCADE,null=True,blank=True)
+    company_name=models.CharField(max_length=30,null=False,blank=False) 
+    login_time= models.TimeField(default="9:00:00",null=False,blank=False)
+    logout_time=models.TimeField(default="18:00:00",blank=False,null=False)
+    break_start=models.TimeField(default="13:00:00",blank=False,null=False)
+    break_end=models.TimeField(default="13:45:00",blank=False,null=False)
+    employer=models.ForeignKey(Employer, on_delete=models.CASCADE,null=False,blank=True)
     def approvers(self):
         return Approver.objects.get(id=self.id)
-
+    def code(self):
+        return self.company_name[0:2].upper()+str(self.id).zfill(3)
     def __str__(self) -> str:
         return self.company_name
     
     def hours(self):
-        return ((self.logout_time.hour-self.login_time.hour))-((self.break_end.minute-self.break_start.minute))/60
-
+        try:
+            return ((self.logout_time.hour-self.login_time.hour))-((self.break_end.minute-self.break_start.minute))/60
+        except:
+            return '0'
+            # raise serializers.ValidationError('* Required')
+    def employee(self):
+        return self.employee_set.all()
     def owner(self):
-        return (self.employer.user)
+        username=self.employer.user.username
+        employees=self.employee_set.all()#.count()
+        # print(employees)
+        employees_dict=[]
+        for employee in employees:
+            empdict= model_to_dict(employee)
+            employees_dict.append(empdict)
+        
+        dict= model_to_dict(self.employer)
+        dict['employee']=employees_dict
+        #employees_dict
+        dict['user']=model_to_dict(self.employer.user,fields=['id','email','date_joined','username'])
+        dict['phone']=username
+        return dict
+
 class Approver(models.Model):
     user=models.ForeignKey('auth.User',related_name='approver',on_delete=models.CASCADE)
     company=models.ForeignKey(Company,on_delete=models.CASCADE)
@@ -134,16 +157,26 @@ class Owner(models.Model):
 
 
 class Employee(models.Model):
-    username=models.CharField(blank=True,max_length=255)
+    # username=models.CharField(blank=True,max_length=255)
     first_name=models.CharField(max_length=30,blank=True)
     middle_name=models.CharField(max_length=64,default='',blank=True)
     last_name=models.CharField(max_length=64,blank=True)
-    employer=models.ForeignKey(Employer, on_delete=models.CASCADE,null=True,)
-    user = models.ForeignKey('auth.User', related_name='employee', on_delete=models.CASCADE,blank=True,null=True)
+    employer=models.ForeignKey(Employer, on_delete=models.CASCADE,null=True,blank=True)
+    user = models.ForeignKey('auth.User', related_name='employee', on_delete=models.CASCADE,null=True,blank=True)
     company=models.ForeignKey(Company,on_delete=models.CASCADE, null=True,blank=True)
     phone=models.OneToOneField(phoneModel,on_delete=models.CASCADE,unique=True,null=True)
     deisgnation=models.CharField(blank=True,null=True,default='staff',max_length=32)
-    
+    # def username(self):
+    #     return self.user.username
+
+    # def clean(self):
+        
+        # try:
+            # employer=Employer.objects.get(user=self.user) 
+            # company=employer.company_set.all()
+            # print(company)
+        # except Employer.DoesNotExist:
+        #     raise serializers.ValidationError('Employer Does not exist')
     def __str__(self):
         return str(self.user)
     # def company_details(self):
@@ -171,8 +204,11 @@ class Attendance(models.Model):
     date=models.DateField(auto_now=True)
     start_break=models.TimeField(blank=True,null=True)
     end_break=models.TimeField(blank=True,null=True)
+    company=models.ForeignKey(Company,on_delete=models.CASCADE,default=1,blank=True,null=True)
     # created_at = models.DateTimeField(default=datetime.now, blank=True)
     # updated_at = models.DateTimeField(auto_now=True)
+    def companyname(self):
+        return model_to_dict(self.company)
     def username(self):
         return self.user.username
     def user_urls(self):
@@ -183,7 +219,7 @@ class Attendance(models.Model):
         return model_to_dict(self.user,fields=['urls','username','first_name','last_name','email','date_joined','is_active'#,'last_login'
         ,'user_permissions','groups'])
     def employee(self):
-        return  Employee.objects.get(user=self.user)
+        return  model_to_dict(Employee.objects.get(user=self.user))
 class Leave(models.Model):
     date=models.DateField(blank=False)
     user=models.ForeignKey('auth.User',on_delete=models.CASCADE)

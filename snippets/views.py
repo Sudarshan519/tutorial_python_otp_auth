@@ -243,7 +243,7 @@ class SnippetViewSet(viewsets.ModelViewSet):
     
 
 
-from rest_framework import viewsets
+from rest_framework import viewsets,serializers
 from django.contrib.auth.models import User
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication 
 
@@ -310,52 +310,84 @@ class getPhoneNumberRegistered(APIView):
     # Get to Create a call for OTP
     # @permission_classes([IsAuthenticated])
     @staticmethod
-    def get(request, phone):
-
+    def get(request, phone): 
+        
         try:
-            Mobile = phoneModel.objects.get(Mobile=phone)  # if Mobile already exists the take this else create New One
-      
-            try:
-                user=User.objects.get(username=str(phone))
-                # if(Employer.objects.get(username=phone).DoesNotExist):
-                try:
-                    employer=Employer.objects.get(user=user)
-                    print(employer.company_set.all())
-                    # print(employer.company_list)
-                    
-                except ObjectDoesNotExist:
-                    empoyer=Employer.objects.create(phone=Mobile,user=user,username=user.username)
-
-                    print('employer does not exist')
-            except ObjectDoesNotExist:
-                user=User.objects.create(username=phone)
-                print('user does not exist')
+            user=User.objects.get(username=str(phone))
+            
         except ObjectDoesNotExist:
-            print("mobile does not exist")
-            phoneObj=phoneModel.objects.create(
-                Mobile=phone
-            )
-            # print(phoneObj)
-            user=User.objects.create(username=phone)
-            employer=Employer(phone=phoneObj,user=user)
-            # # user=User.objects.create(username=phone,password='')
-            # print("user created")
-            # if request.data['isEmployer'] is True:
-            #     print(request.data['isEmployer'])
+            user =User.objects.create(username=str(phone))
+        print(user)
+        try:
+            Mobile=phoneModel.objects.get(Mobile=phone) 
+        except ObjectDoesNotExist:
+            Mobile=phoneModel.objects.create(Mobile=phone) 
+
+        if 'isEmployer' in request.data:
+            print('employer')
+            try:
+                employer=Employer.objects.get(user=user)
+            except ObjectDoesNotExist:
+                employer=Employer.objects.create(user=user,phone=phoneModel.objects.get(Mobile=phone))
+            # print(employer)
+        
+        else:
+            print('employee')
+            try:
+                employer=Employee.objects.get(user=user)
+            except ObjectDoesNotExist:
+                employer=Employee.objects.create(user=user)
+
+        # return Response({},200)
+        # try:
+        #     Mobile = phoneModel.objects.get(Mobile=phone)  # if Mobile already exists the take this else create New One
+      
+        #     try:
+        #         user=User.objects.get(username=str(phone))
+        #         # if(Employer.objects.get(username=phone).DoesNotExist):
+        #         if request.data['isEmployer'] is True:
+        #             try:
+        #                 employer=Employer.objects.get(user=user)
+        #                 print(employer.company_set.all())
+        #                 # print(employer.company_list)
+                        
+        #             except ObjectDoesNotExist:
+        #                 empoyer=Employer.objects.create(phone=Mobile,user=user,username=user.username)
+        #         else:
+        #             print("employee")
+        #             # print('employer does not exist')
+        #     except KeyError:
+        #         employee=Employee.objects.create(user=user,username=user.username)
+        #         print("Key Error")
+        #     except ObjectDoesNotExist:
+        #         user=User.objects.create(username=phone)
+        #         print('user does not exist')
+        # except ObjectDoesNotExist:
+        #     print("mobile does not exist")
+        #     Mobile=phoneModel.objects.create(
+        #         Mobile=phone
+        #     )
+        #     # print(phoneObj)
+        #     user=User.objects.create(username=phone)
+        #     employer=Employer(phone=Mobile,user=user)
+        #     # # user=User.objects.create(username=phone,password='')
+        #     # print("user created")
+        #     # if request.data['isEmployer'] is True:
+        #     #     print(request.data['isEmployer'])
                 
-            #     if(len(Employer.objects.get(user=user))==1):
+        #     #     if(len(Employer.objects.get(user=user))==1):
 
                     
 
-            #         employer.save()
-            #         print(employer)
-            #     else:
-            #         print('employee exists')
-            # else:
-            #     # employee=Employee.objects.create(phone=phoneModel(Mobile=phone))
-            #     print("employee")
+        #     #         employer.save()
+        #     #         print(employer)
+        #     #     else:
+        #     #         print('employee exists')
+        #     # else:
+        #     #     # employee=Employee.objects.create(phone=phoneModel(Mobile=phone))
+        #     #     print("employee")
                
-            # Mobile = phoneModel.objects.get(Mobile=phone)  # user Newly created Model
+        #     # Mobile = phoneModel.objects.get(Mobile=phone)  # user Newly created Model
         Mobile.counter += 1  # Update Counter At every Call
         Mobile.save()  # Save the data
         # Employer.objects.create()
@@ -438,57 +470,7 @@ class getPhoneNumberRegistered(APIView):
 #             return Response("You are authorised", status=200)
 #         return Response("OTP is wrong/expired", status=400)
 
-# @authentication_classes([SessionAuthentication, BasicAuthentication])
-class CreateEmployee(APIView):
-    # authentication_classes = [SessionAuthentication, BasicAuthentication]
-    permission_classes = (IsAuthenticated,) 
-    @staticmethod
-    def get(self):
-        phone=phoneModel.objects.get(Mobile=int(self.user.username))
-        try:
-            result=Employee.objects.create(user=self.user,phone=phone)
-        
-        
-            print(result)
-        except:
-            result=Employee.objects.get(user=self.user)
-        print(self.user)
-        return Response(str(result), 200)
-from django.core import serializers
-class EmployeeV(viewsets.ModelViewSet):
-    # permission_classes=(IsAuthenticated)
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly,
-                           ]
-    queryset=Employee.objects.all()
-    serializer_class=EmployeeSerializer
 
-
-
-class EmployerV(viewsets.ModelViewSet):
-    # permission_classes=(IsAuthenticated)
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly,]
-    queryset=Employer.objects.all()
-    serializer_class=EmployerSerializer
-
-from .models import Attendance
-from django.db import connection
-class Attendance(viewsets.ModelViewSet):
-    permission_classes=[permissions.IsAuthenticatedOrReadOnly,]
-    queryset=Attendance.objects.all().order_by('login_time')
-    serializer_class = AttendanceSerializer
-    def perform_create(self, serializer):
-        print(self.request.user)
-        serializer.save(user=self.request.user) 
-
-class InvitationV(viewsets.ModelViewSet):
-    
-    permission_classes(permissions.IsAuthenticatedOrReadOnly)
-    # permission_classes = [permissions.IsAuthenticatedOrReadOnly,]
-    queryset = Invitation.objects.all()
-    serializer_class = InvitationSerializer
-    def perform_create(self, serializer):
-        print(self.request.user)
-        serializer.save(user=self.request.user) 
 # class InvitationList(viewsets.ModelViewSet):
 #     permission_classes = [permissions.IsAuthenticatedOrReadOnly,]
 #     queryset = Invitation.objects.all()
@@ -522,10 +504,87 @@ class InvitationV(viewsets.ModelViewSet):
 #     print(phone)
 #     employee.save()
 #     print(employee)
+# @authentication_classes([SessionAuthentication, BasicAuthentication])
+
+
+
+class CreateEmployee(APIView):
+    # authentication_classes = [SessionAuthentication, BasicAuthentication]
+    permission_classes = (IsAuthenticated,) 
+    @staticmethod
+    def get(self):
+        phone=phoneModel.objects.get(Mobile=int(self.user.username))
+        try:
+            result=Employee.objects.create(user=self.user,phone=phone)
+        
+        
+            print(result)
+        except:
+            result=Employee.objects.get(user=self.user)
+        print(self.user)
+        return Response(str(result), 200)
+# from django.core import serializers
+class EmployeeV(viewsets.ModelViewSet):
+    # permission_classes=(IsAuthenticated)
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly,
+                           ]
+    queryset=Employee.objects.order_by('-id').all()
+    serializer_class=EmployeeSerializer
+    def perform_create(self, serializer):
+        print(self.request.user)
+        serializer.save(user=self.request.user)
+        # serializer.save(employer=Employer.objects.get(user=self.request.user))
+
+
+class EmployerV(viewsets.ReadOnlyModelViewSet):
+    # permission_classes=(IsAuthenticated)
+    permission_classes=[IsOwnerOrReadOnly]#(IsOwnerOrReadOnly)
+    # permission_classes = [permissions.IsAuthenticatedOrReadOnly,]
+    queryset=Employer.objects.all()
+    serializer_class=EmployerSerializer
+
+from .models import Attendance
+from django.db import connection
+class Attendance(viewsets.ModelViewSet):
+    permission_classes=[permissions.IsAuthenticatedOrReadOnly,]
+    queryset=Attendance.objects.all().order_by('login_time')
+    serializer_class = AttendanceSerializer
+    def perform_create(self, serializer):
+        print(self.request.user)
+        serializer.save(user=self.request.user) 
+
+    permission_classes = (IsAuthenticated,) 
+    def get_queryset(self):
+        queryset=self.queryset
+        id=(self.request.query_params.get('id'))
+        query_set=queryset.filter(company=id)
+        # query_set=queryset.filter(company=self.request.data['id'])
+        return query_set
+class InvitationV(viewsets.ModelViewSet):
+    
+    permission_classes(IsAuthenticated)
+    # permission_classes = [permissions.IsAuthenticatedOrReadOnly,]
+    queryset = Invitation.objects.order_by('id').all()
+    serializer_class = InvitationSerializer
+    def perform_create(self, serializer):
+        print(self.request.user)
+        serializer.save(user=self.request.user) 
+    permission_classes = (IsAuthenticated,) 
+    def get_queryset(self):
+        queryset=self.queryset
+        query_set=queryset.filter(user=self.request.user)
+        return query_set
+
 from .models import Company
 from .serializers import CompanySerializer
 
 class CompanyV(viewsets.ModelViewSet):
-    permission_classes(permissions.IsAuthenticatedOrReadOnly)
-    queryset = Company.objects.all()
+    permission_classes=(IsAuthenticated,IsOwnerOrReadOnly)
+    queryset = Company.objects.order_by('created_at').all()
     serializer_class=CompanySerializer
+    def perform_create(self, serializer):
+        try:
+            employer=Employer.objects.get(user=self.request.user)
+            serializer.save(employer=employer)
+        except Employer.DoesNotExist:
+            raise serializers.ValidationError({"employer error":"Employer details does not exists."})

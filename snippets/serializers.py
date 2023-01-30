@@ -1,6 +1,8 @@
 from rest_framework import serializers
 from snippets.models import Attendance, Employer, Invitation, Snippet, LANGUAGE_CHOICES, STYLE_CHOICES,Employee,Company#,Approver
 from django.contrib.auth.models import User 
+from . validators import validateExists
+from django.core.exceptions import ValidationError
 # class SnippetSerializer(serializers.Serializer):
 #     id = serializers.IntegerField(read_only=True)
 #     title = serializers.CharField(required=False, allow_blank=True, max_length=100)
@@ -50,31 +52,45 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
 
 class CompanySerializer(serializers.HyperlinkedModelSerializer):
     company_name=serializers.CharField()
-    owner=serializers.SlugRelatedField(read_only=True,slug_field='username')
+    # employee=serializers.ReadOnlyField(source='employee',many=True)
+    # owner=serializers.SlugRelatedField(read_only=True,slug_field='username')
     class Meta:
         model=Company
-        fields=['url','company_name','owner','login_time','logout_time','break_start','break_end','hours']
+        fields=['url','code','company_name','owner','login_time','logout_time','break_start','break_end','hours'
+        ]
     def create(self, validated_data):
         return super().create(validated_data)
   
 
 class EmployeeSerializer(serializers.HyperlinkedModelSerializer):
-    username= serializers.ReadOnlyField(source='user.username')
-    company=CompanySerializer('company')
+    # username= serializers.ReadOnlyField(source='user.username')
+    # company=CompanySerializer('company')
+    
     class Meta:
         model=Employee
-        fields=['url','id','first_name','middle_name','last_name','username','company']
+        ordering = ['-id']
+        fields=['url','id','first_name','middle_name','last_name','company',#'companies','username',
+        ]
+    
+    def validate(self, attrs):
+        instance=Employee(**attrs)
+        instance.clean()
+        return attrs
     def create(self, validated_data):
         return super().create(validated_data)
   
 class EmployerSerializer(serializers.HyperlinkedModelSerializer):
     # username=serializers.ReadOnlyField(source='user.username')
     # company=serializers.ReadOnlyField(source='company.company_name')
-
+    # companies_list=serializers.ReadOnlyField(source='company_details')
+    companies =CompanySerializer(many=True,allow_null=True,validators=None,default=None,required=None)
+    # employer=EmployeeSerializer 
     class Meta:
         model=Employer
         fields=['user','first_name'#, 'company_details'
-        ,'employer_details']
+      ,'companies'  
+      ,'employer_details'#,'companies_list'
+      ]
 
  
     # def create(self, validated_data):
@@ -91,12 +107,19 @@ class EmployerSerializer(serializers.HyperlinkedModelSerializer):
 class AttendanceSerializer(serializers.HyperlinkedModelSerializer):
     #user_detail=  serializers.ReadOnlyField(source='dict')#.__dict__
     # user_detail= UserSerializer(source='user',)#serializers.PrimaryKeyRelatedField(read_only=True) #
-    employee_detail=EmployeeSerializer(source='employee')
+    # employee_detail=EmployeeSerializer(source='employee')
+    # employee_detail=serializers.SlugRelatedField(source='employee',slug_field='employee',read_only=True)
+    # companies=CompanySerializer
+    user=serializers.ReadOnlyField(source='user.username')
     class Meta:
         model=Attendance
         fields=[ 'url','id',#'user_name',
         # 'dict',
-      'employee_detail',
+        # 'companies',
+        # 'employee',
+    #   'employee_detail',
+    'companyname',
+        'user',
         'date', 'login_time','logout_time','start_break','end_break',
         # 'created_at'
         # 'user_detail'
