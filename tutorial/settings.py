@@ -46,7 +46,9 @@ INSTALLED_APPS = [
     'rest_framework',
     #    'django.contrib.staticfiles',  # required for serving swagger ui's css/js files
    'drf_yasg',
-    'rest_framework_swagger'
+    'rest_framework_swagger',
+
+      'djoser',
 ]
 
 MIDDLEWARE = [
@@ -182,3 +184,10 @@ SIMPLE_JWT = {
     'SLIDING_TOKEN_LIFETIME': timedelta(minutes=5),
     'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
 }
+
+# SWAGGER_SETTINGS = {
+#     'SECURITY_DEFINITIONS': {
+#         'basic': {
+#             'type': 'basic'
+#         }
+#     }}

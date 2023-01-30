@@ -1,4 +1,6 @@
 
+from django.contrib.auth.models import Group
+from django.forms import model_to_dict
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import api_view
@@ -8,7 +10,7 @@ from django.views.decorators.csrf import csrf_exempt
 from rest_framework.parsers import JSONParser
 from snippets.models import Snippet
 from snippets.permissions import IsOwnerOrReadOnly
-from snippets.serializers import AttendanceSerializer, EmployeeSerializer, EmployerSerializer, InvitationSerializer, SnippetSerializer, UserSerializer
+from snippets.serializers import AttendanceSerializer, CompanySerializer, EmployeeSerializer, EmployerSerializer, InvitationSerializer, SnippetSerializer, UserSerializer
 
 
 from rest_framework import status
@@ -16,6 +18,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import viewsets
+
 # @csrf_exempt
 # @api_view(['GET', 'POST'])
 # def snippet_list(request):
@@ -296,7 +299,7 @@ from django.core.exceptions import ObjectDoesNotExist
 import pyotp
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from .models import Employee, Employer, phoneModel,Invitation
+from .models import Company, Employee, Employer, phoneModel,Invitation
 import base64
 import json
 from rest_framework.decorators import api_view, permission_classes
@@ -326,8 +329,12 @@ class getPhoneNumberRegistered(APIView):
                 print(request.data['isEmployer'])
                 user=User.objects.get(username='auth.AuthUrls')
                 employer=Employer.objects.create(phone=phoneModel(Mobile=phone),)
+                my_group = Group.objects.get(name='Employer') 
+                user.groups.add(my_group)
                 print(employer)
             else:
+                my_group = Group.objects.get(name='Employee') 
+                user.groups.add(my_group)
                 employee=Employee.objects.create(phone=phoneModel(Mobile=phone))
                 print(employee)
                
@@ -448,6 +455,14 @@ class Employer(viewsets.ModelViewSet):
 
 from .models import Attendance
 from django.db import connection
+
+from rest_framework.exceptions import APIException
+# custom exception
+# class ValidationError401(APIException):
+#     status_code = status.
+
+
+
 class AttendanceV(viewsets.ModelViewSet):
     permission_classes=[permissions.IsAuthenticatedOrReadOnly,]
     queryset=Attendance.objects.all().order_by('login_time')
@@ -460,13 +475,16 @@ class AttendanceV(viewsets.ModelViewSet):
             # print(str(datetime.now()))
             attendance=Attendance.objects.get(date= (dateF ),user=self.request.user)
             # print(attendance)
+            dict=model_to_dict(attendance)
             if self.request.method=="POST":
-                raise serializers.ValidationError({"duplicate_login":"User already logged in."},401)
+                
+                raise serializers.ValidationError({"duplicate_login":"User already logged in.","data":dict},status.HTTP_409_CONFLICT)
             else:
                 serializer.save(user=self.request.user)        
         except ObjectDoesNotExist:
             # print(self.request.body)
             serializer.save(user=self.request.user) 
+        
         
        
         
@@ -508,3 +526,14 @@ class InvitationList(viewsets.ModelViewSet):
 #     employee.save()
 #     print(employee)
 
+
+class CompanyV(viewsets.ModelViewSet):
+    permission_classes=(IsAuthenticated,IsOwnerOrReadOnly)
+    queryset = Company.objects.order_by('created_at').all()
+    serializer_class=CompanySerializer
+    def perform_create(self, serializer):
+        try:
+            employer=Employer.objects.get(user=self.request.user)
+            serializer.save(employer=employer)
+        except Employer.DoesNotExist:
+            raise serializers.ValidationError({"employer error":"Employer details does not exists."})

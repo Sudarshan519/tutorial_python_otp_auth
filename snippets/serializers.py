@@ -52,14 +52,25 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
 
 class CompanySerializer(serializers.HyperlinkedModelSerializer):
     company_name=serializers.CharField()
-    owner=serializers.SlugRelatedField(read_only=True,slug_field='username')
+    # owner=serializers.SlugRelatedField(read_only=True,slug_field='username')
     class Meta:
         model=Company
-        fields=['company_name','owner','login_time','logout_time','break_start','break_end']
+        fields=['company_name','employer','login_time','logout_time','break_start','break_end','employees']
     def create(self, validated_data):
         return super().create(validated_data)
   
 
+# class CompanySerializer(serializers.HyperlinkedModelSerializer):
+#     company_name=serializers.CharField()
+#     # employee=serializers.ReadOnlyField(source='employee',many=True)
+#     # owner=serializers.SlugRelatedField(read_only=True,slug_field='username')
+#     class Meta:
+#         model=Company
+#         fields=['url','code','company_name','owner','login_time','logout_time','break_start','break_end','hours'
+#         ]
+#     def create(self, validated_data):
+#         return super().create(validated_data)
+  
 class EmployeeSerializer(serializers.HyperlinkedModelSerializer):
     username= serializers.ReadOnlyField(source='user.username')
     company=CompanySerializer('company')
@@ -73,7 +84,9 @@ class EmployerSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model=Employer
-        fields=['user','first_name', 'company_details','employer_details']
+        fields=['user','first_name', #'company_details',
+        'employer_details',
+        ]
 
  
     # def create(self, validated_data):

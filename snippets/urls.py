@@ -97,23 +97,29 @@ router.register(r'users', views.UserViewSet,basename="user")
 router.register(r'api/employee-invitations',views.InvitationList,basename='invitations')
 router.register(r'api/employee',views.Employee,basename='employee')
 router.register(r'api/employer',views.Employer,basename='employer')
+router.register(r'api/company',views.CompanyV,basename='company')
 router.register(r'api/attendance',views.AttendanceV,basename='attendance')
+#router.register(r'auth/', include('djoser.urls'),basename='auth'),
 # router.register('api/employee/',views.CreateEmployee.as_view())
 
 
 # The API URLs are now determined automatically by the router.
-urlpatterns = [
+urlpatterns = [ path('api/login/<phone>',views.getPhoneNumberRegistered.as_view()),
+     path(r'api/v1/auth/', include('djoser.urls') ),
+       path(r'api/v1/auth/', include('djoser.urls.authtoken')),
+    # path('api/employee/',views.CreateEmployee.as_view()),
      re_path(r'^swagger(?P<format>\.json|\.yaml)$', schema_view.without_ui(cache_timeout=0), name='schema-json'),
    re_path(r'^swagger/$', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
    re_path(r'^redoc/$', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
+   
    path('', include(router.urls)),
+
     # path('api/swagger-ui', schema_view),
     #     path('swagger-ui/', TemplateView.as_view(
     #     template_name='swagger-ui.html',
     #     extra_context={'schema_url':"127.0.0.1:8000"}
     # ), name='swagger-ui'),
-    path('api/login/<phone>',views.getPhoneNumberRegistered.as_view()),
-    path('api/employee/',views.CreateEmployee.as_view()),
+   
     # path('api/invitations/',views.InvitationList.as_view(),name='invitations_list')
 
 
