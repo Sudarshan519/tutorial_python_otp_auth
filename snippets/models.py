@@ -2,6 +2,7 @@
 from datetime import datetime
 from django.db import models
 from django.forms import model_to_dict
+from django.urls import reverse
 from pygments.lexers import get_all_lexers
 from pygments.styles import get_all_styles
 from pygments.lexers import get_lexer_by_name
@@ -190,13 +191,21 @@ class Invitation(models.Model):
     accepted=models.BooleanField(default=False)
     created_at = models.DateTimeField(default=datetime.now, blank=True)
     updated_at = models.DateTimeField(auto_now=True)
+    
     def company_name(self):
         return self.company.company_name
+    # def company(self):
+    #     return model_to_dict(self.company,fields=['id','company_name','login_time'])
+    # def company_url(self):
+    #     redirect_url = reverse('my_function', args=(backend,))
+    #     parameters = urlencode(form.cleaned_data)
+    #     return redirect(f'{redirect_url}?{parameters}')
+    #     # return self.company_url
     def username(self):
         return self.user
 
-    def __str__(self):
-        return self.company.company_name +' has invited '+ self.user.username
+    # def __str__(self):
+    #     return self.company.company_name +' has invited '+ self.user.username
 
 class Attendance(models.Model):
     login_time=models.TimeField( blank=False,null=True)

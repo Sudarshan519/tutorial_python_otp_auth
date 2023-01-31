@@ -51,7 +51,7 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
         ]
 
 class CompanySerializer(serializers.HyperlinkedModelSerializer):
-    company_name=serializers.CharField()
+    # company_name=serializers.CharField()
     # owner=serializers.SlugRelatedField(read_only=True,slug_field='username')
     class Meta:
         model=Company
@@ -115,16 +115,23 @@ class AttendanceSerializer(serializers.HyperlinkedModelSerializer):
         # validators=[UniqueTogetherValidator(
         #     queryset=Attendance.objects.all(),
         #     fields=('date','username'))]
-class InvitationSerializer(serializers.Serializer):
-    accepted=serializers.BooleanField()
-    created_at=serializers.DateTimeField()
+# class InvitationSerializer(serializers.Serializer):
+#     accepted=serializers.BooleanField()
+#     created_at=serializers.DateTimeField()
 
-    updated_at=serializers.DateTimeField()
-    username=serializers.CharField()
-    company=CompanySerializer('company')
+#     updated_at=serializers.DateTimeField()
+#     username=serializers.CharField()
+#     company=CompanySerializer('company')
 
-    def create(self, validated_data):
-        return super().create(validated_data)
+#     def create(self, validated_data):
+#         return super().create(validated_data)
+
+class InvitationSerializer(serializers.HyperlinkedModelSerializer):
+    # company=CompanySerializer('company')
+    class Meta:
+        model=Invitation
+        fields=['accepted','created_at','id','company','company_name',
+        ]
 
     # def to_representation(self, instance):
     #     return super().to_representation(instance)

@@ -324,19 +324,19 @@ class getPhoneNumberRegistered(APIView):
             )
             
             user=User.objects.create(username=phone,password='')
-            print("user created")
+            # print("user created")
             if   request.data['isEmployer'] is True:
-                print(request.data['isEmployer'])
+                # print(request.data['isEmployer'])
                 user=User.objects.get(username='auth.AuthUrls')
                 employer=Employer.objects.create(phone=phoneModel(Mobile=phone),)
                 my_group = Group.objects.get(name='Employer') 
                 user.groups.add(my_group)
-                print(employer)
+                # print(employer)
             else:
                 my_group = Group.objects.get(name='Employee') 
                 user.groups.add(my_group)
                 employee=Employee.objects.create(phone=phoneModel(Mobile=phone))
-                print(employee)
+                # print(employee)
                
             Mobile = phoneModel.objects.get(Mobile=phone)  # user Newly created Model
         Mobile.counter += 1  # Update Counter At every Call
@@ -496,16 +496,38 @@ class AttendanceV(viewsets.ModelViewSet):
     #     return queryset
     
 class InvitationList(viewsets.ModelViewSet):
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly,]
-    queryset = Invitation.objects.all()
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly,]  
+    # permission_classes(IsAuthenticated)
+    # permission_classes = [permissions.IsAuthenticatedOrReadOnly,]
+    queryset = Invitation.objects.order_by('id').all()
     serializer_class = InvitationSerializer
+    def perform_create(self, serializer):
+        # print(self.request.user)
+        try:
+            employer=Employer.objects.get(user=self.request.user)
+            serializer.save(employer=employer)
+        except Employer.DoesNotExist:
+            raise serializers.ValidationError({"employer error":"Employer details does not exists."})
+        # try:
+        #     employer=Employer.objects.get(phone=phoneModel(Mobile:self.requset.user))
+        # except ObjectDoesNotExist:
+        #     if self.request.method=='PUT':
+                
+        # serializer.save(user=self.request.user) 
+    def perform_update(self, serializer):
+        return super().perform_update(serializer)
+    permission_classes = (IsAuthenticated,) 
+    def get_queryset(self):
+        queryset=self.queryset
+        query_set=queryset.filter(user=self.request.user)
+        return query_set
     # def perform_create(self, serializer):
     #     print(self.request.user)
     #     serializer.save(user_detail=self.request.user) 
     # @staticmethod
-    # def get(request):
-    #     invitations=Invitation.objects.all()
-    #     print(invitations)
+    # def get(self):
+    #     invitations=Invitation.objects.get(user=self.request.user)
+ 
     #     invitation_serializer= InvitationSerializer(invitations,many=True)
     #     data=invitation_serializer.data
     #     # print(data)
