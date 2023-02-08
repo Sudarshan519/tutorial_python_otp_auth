@@ -43,7 +43,8 @@ class Snippet(models.Model):
 
     def owner_detail(self):
         return model_to_dict(self.owner,fields=['username','first_name','last_name','email','date_joined','is_active'#,'last_login'
-        ,'user_permissions','groups'])
+        # ,'user_permissions','groups'
+        ])
 
 # this model Stores the data of the Phones Verified
 class phoneModel(models.Model):
@@ -74,7 +75,9 @@ class Employer(models.Model):
     
         
     def employer_details(self):
-        return model_to_dict(self.user,fields=['id','username','email','is_staff','date_joined','groups','user_permissions'])
+        return model_to_dict(self.user,fields=['id','username','email','is_staff','date_joined'   ])
+    class Meta:
+        permissions=['can_add_employee','can_create_company','can_add_approver']
 
 class Approver(models.Model):
     user=models.ForeignKey('auth.User',related_name='approver',on_delete=models.CASCADE)
@@ -111,7 +114,7 @@ class Company(models.Model):
         employees=self.employee_set.all()
         print(employees)
         for emp in employees:
-            dict.append(model_to_dict(emp))
+            dict.append(model_to_dict(emp,fields=['user']))
         return dict
 # class Company(models.Model):
 #     created_at = models.DateTimeField(default=datetime.now, )
@@ -159,15 +162,15 @@ class Company(models.Model):
  
  
 
-class Owner(models.Model):
-    created_at = models.DateTimeField(default=datetime.now, blank=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    user=models.ForeignKey('auth.User', related_name='owner_user', on_delete=models.CASCADE)
-    def __str__(self) -> str:
-        return  self.company_name
+# class Owner(models.Model):
+#     created_at = models.DateTimeField(default=datetime.now, blank=True)
+#     updated_at = models.DateTimeField(auto_now=True)
+#     user=models.ForeignKey('auth.User', related_name='owner_user', on_delete=models.CASCADE)
+#     def __str__(self) -> str:
+#         return  self.company_name
 
-    def user_name(self)->str:
-        return self.user_name
+#     def user_name(self)->str:
+#         return self.user_name
 
 
 class Employee(models.Model):
@@ -176,7 +179,8 @@ class Employee(models.Model):
     middle_name=models.CharField(max_length=64,default='',blank=True)
     last_name=models.CharField(max_length=64,blank=True)
     user = models.ForeignKey('auth.User', related_name='employee', on_delete=models.CASCADE,blank=True,null=True)
-    company=models.ForeignKey(Company,on_delete=models.CASCADE, null=True,blank=True)
+    # company=models.ForeignKey(Company,on_delete=models.CASCADE, null=True,blank=True)
+    company=models.ManyToManyField(Company)
     phone=models.OneToOneField(phoneModel,on_delete=models.CASCADE,unique=True,null=True)
     def __str__(self):
         return str(self.user)
@@ -228,7 +232,8 @@ class Attendance(models.Model):
 
         raise serializers.ValidationError('* Required')
     
- 
+    class Meta:
+        unique_together = ('user', 'date',)
 
 class Leave(models.Model):
     date=models.DateField(blank=False)

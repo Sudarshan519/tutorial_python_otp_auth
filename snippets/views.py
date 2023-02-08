@@ -205,7 +205,7 @@ from rest_framework import viewsets
 # from snippets.serializers import SnippetSerializer
 from rest_framework import generics
 
-from rest_framework import permissions
+# from rest_framework import permissions
 
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -550,7 +550,7 @@ class InvitationList(viewsets.ModelViewSet):
 
 
 class CompanyV(viewsets.ModelViewSet):
-    permission_classes=(IsAuthenticated,IsOwnerOrReadOnly)
+    # permission_classes=(IsAuthenticated,IsOwnerOrReadOnly)
     queryset = Company.objects.order_by('created_at').all()
     serializer_class=CompanySerializer
     def perform_create(self, serializer):

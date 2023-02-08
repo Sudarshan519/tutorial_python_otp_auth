@@ -47,7 +47,7 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = User
-        fields = ['url', 'id', 'username', 'snippets','email','date_joined','is_staff'
+        fields = ['url', 'id', 'username', 'snippets','email','date_joined','is_staff',
         ]
 
 class CompanySerializer(serializers.HyperlinkedModelSerializer):
@@ -73,10 +73,13 @@ class CompanySerializer(serializers.HyperlinkedModelSerializer):
   
 class EmployeeSerializer(serializers.HyperlinkedModelSerializer):
     username= serializers.ReadOnlyField(source='user.username')
-    company=CompanySerializer('company')
+    # company=CompanySerializer('company')
     class Meta:
         model=Employee
-        fields=['url','id','first_name','middle_name','last_name','username','company']
+        fields=['url','id','first_name','middle_name','last_name','username',
+        'company'
+        ]
+
 
 class EmployerSerializer(serializers.HyperlinkedModelSerializer):
     # username=serializers.ReadOnlyField(source='user.username')
@@ -105,6 +108,8 @@ class AttendanceSerializer(serializers.HyperlinkedModelSerializer):
     # user_detail= UserSerializer(source='user',)#serializers.PrimaryKeyRelatedField(read_only=True) #
     class Meta:
         model=Attendance
+       
+        
         fields=['id',#,'user_name',
         'username',
         'date', 'login_time','logout_time','start_break','end_break',
