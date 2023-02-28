@@ -99,14 +99,16 @@ router.register(r'api/employee',views.Employee,basename='employee')
 router.register(r'api/employer',views.Employer,basename='employer')
 router.register(r'api/company',views.CompanyV,basename='company')
 router.register(r'api/attendance',views.AttendanceV,basename='attendance')
+# router.register(r'api/permissions',views.PermissmissionView.as_view(),basename='permission_users' )
 #router.register(r'auth/', include('djoser.urls'),basename='auth'),
 # router.register('api/employee/',views.CreateEmployee.as_view())
 
 
 # The API URLs are now determined automatically by the router.
 urlpatterns = [ path('api/login/<phone>',views.getPhoneNumberRegistered.as_view()),
-     path(r'api/v1/auth/', include('djoser.urls') ),
-       path(r'api/v1/auth/', include('djoser.urls.authtoken')),
+               path(r'api/permissions',views.PermissmissionView.as_view()  ),
+   #   path(r'api/v1/auth/', include('djoser.urls') ),
+   #     path(r'api/v1/auth/', include('djoser.urls.authtoken')),
     # path('api/employee/',views.CreateEmployee.as_view()),
      re_path(r'^swagger(?P<format>\.json|\.yaml)$', schema_view.without_ui(cache_timeout=0), name='schema-json'),
    re_path(r'^swagger/$', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),

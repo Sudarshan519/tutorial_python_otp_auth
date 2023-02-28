@@ -8,17 +8,20 @@ from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.parsers import JSONParser
+from snippets.groups import is_employer
 from snippets.models import Snippet
-from snippets.permissions import IsOwnerOrReadOnly
+from snippets.permissions import IsOwnerOrReadOnly, is_employee
 from snippets.serializers import AttendanceSerializer, CompanySerializer, EmployeeSerializer, EmployerSerializer, InvitationSerializer, SnippetSerializer, UserSerializer
-
-
+from django.contrib.auth.models import User 
+# from . models import User
+from django.contrib.auth.models import Permission
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import viewsets
-
+ 
+# from .models import User
 # @csrf_exempt
 # @api_view(['GET', 'POST'])
 # def snippet_list(request):
@@ -133,8 +136,8 @@ from rest_framework import viewsets
 
 
 # class SnippetDetail(APIView):
-#     permission_classes = [permissions.IsAuthenticatedOrReadOnly,
-#                       IsOwnerOrReadOnly]
+    # permission_classes = [permissions.IsAuthenticatedOrReadOnly,
+    #                   IsOwnerOrReadOnly]
 #     """
 #     Retrieve, update or delete a snippet instance.
 #     """
@@ -247,7 +250,7 @@ class SnippetViewSet(viewsets.ModelViewSet):
 
 
 from rest_framework import viewsets
-from django.contrib.auth.models import User
+
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication 
 
 #USER VIEEW SET
@@ -462,7 +465,8 @@ from rest_framework.exceptions import APIException
 #     status_code = status.
 
 
-
+from django.contrib.auth.decorators import permission_required
+# @permission_required('snippets.add_vote')
 class AttendanceV(viewsets.ModelViewSet):
     permission_classes=[permissions.IsAuthenticatedOrReadOnly,]
     queryset=Attendance.objects.all().order_by('login_time')
@@ -559,3 +563,53 @@ class CompanyV(viewsets.ModelViewSet):
             serializer.save(employer=employer)
         except Employer.DoesNotExist:
             raise serializers.ValidationError({"employer error":"Employer details does not exists."})
+from django.utils.decorators import method_decorator
+from django.contrib.auth.decorators import user_passes_test
+from django.contrib.auth.decorators import login_required
+class PermissmissionView(APIView):
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly,
+                      IsOwnerOrReadOnly] 
+    # permission_required = ('delete_attendance')
+     
+    
+    # @permission_required('snippets.add_attendance')
+    # @permission_classes([IsAuthenticated])
+    # 
+    # @method_decorator(user_passes_test(is_employer))
+    def get(self, request, format=None):
+        
+
+#         userperm=Permission.objects.get(
+#    codename='add_attendance', 
+# )      
+        if  (is_employee(request.user)):
+            
+            return Response({"Failed":"Login"})
+        else:
+            if request.user.has_perm('add_attendance'):
+                return Response("Auth status enabled")
+            groups=Group.objects.all()
+            permisssions=request.user.get_all_permissions()
+            for p in permisssions:
+                print(p)
+            for g in groups:
+                print(g)
+            # group,created= Group.objects.get_or_create(name='Employee')
+            # request.user.groups.add(group)
+            # group.user_set.add(request.user)
+            # group.user_set.add(request.user)
+            print(model_to_dict(request.user))
+            print(request.user.has_perm('add_attendance'))
+            # for p in userperm:
+            # print(userperm)
+            permissions=Permission.objects.all()
+            dict=[]
+            for p in permissions:
+                dict.append(model_to_dict(p))
+    
+            return Response({"available_permissions":dict},  )
+    # @method_decorator(login_required)
+ 
+    # @method_decorator(user_passes_test(is_employer))
+    # def dispatch(self, request, *args, **kwargs):
+    #     return super().dispatch(request, *args, **kwargs)

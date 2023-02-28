@@ -1,6 +1,8 @@
 from rest_framework import serializers
+from snippets.groups import is_employee, is_employer
 from snippets.models import Attendance, Employer, Invitation, Snippet, LANGUAGE_CHOICES, STYLE_CHOICES,Employee,Company,Approver
 from django.contrib.auth.models import User 
+# from . models import User
 from rest_framework.validators import UniqueForDateValidator
 from rest_framework.validators import UniqueTogetherValidator
 # class SnippetSerializer(serializers.Serializer):
@@ -42,13 +44,15 @@ class SnippetSerializer(serializers.HyperlinkedModelSerializer):
                   'title', 'code', 'linenos', 'language', 'style']
 
 
-class UserSerializer(serializers.HyperlinkedModelSerializer):
+class UserSerializer(serializers.HyperlinkedModelSerializer): 
     # snippets = serializers.HyperlinkedRelatedField(many=True, view_name='snippet-detail', read_only=True)
-
+  
     class Meta:
         model = User
-        fields = ['url', 'id', 'username', 'snippets','email','date_joined','is_staff'
+        fields = ['url', 'id', 'username', 'snippets','email','date_joined','is_staff','user_permissions' 
         ]
+
+    
 
 class CompanySerializer(serializers.HyperlinkedModelSerializer):
     # company_name=serializers.CharField()

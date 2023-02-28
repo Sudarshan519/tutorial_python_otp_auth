@@ -191,3 +191,5 @@ SIMPLE_JWT = {
 #             'type': 'basic'
 #         }
 #     }}
+
+# AUTH_USER_MODEL = 'snippets.User'

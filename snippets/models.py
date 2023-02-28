@@ -8,11 +8,27 @@ from pygments.styles import get_all_styles
 from pygments.lexers import get_lexer_by_name
 from pygments.formatters.html import HtmlFormatter
 from pygments import highlight
+
 from rest_framework import serializers
 LEXERS = [item for item in get_all_lexers() if item[1]]
 LANGUAGE_CHOICES = sorted([(item[1][0], item[0]) for item in LEXERS])
 STYLE_CHOICES = sorted([(item, item) for item in get_all_styles()])
 
+from django.contrib.auth.models import User
+
+# class User(AbstractUser):
+#       EMPLOYEE = 1
+#       EMPLOYER = 2
+#       OWNER =3
+      
+#       ROLE_CHOICES = (
+#           (EMPLOYEE, 'EMPLOYEE'),
+#           (EMPLOYER, 'EMPLOYER'),
+#           (OWNER, 'OWNER'),
+#       )
+#       role = models.PositiveSmallIntegerField(choices=ROLE_CHOICES, blank=True, null=True)
+#       # You can create Role model separately and add ManyToMany if user has more than one role
+      
 
 class Snippet(models.Model):
     created = models.DateTimeField(auto_now_add=True)
@@ -74,7 +90,7 @@ class Employer(models.Model):
     
         
     def employer_details(self):
-        return model_to_dict(self.user,fields=['id','username','email','is_staff','date_joined','groups','user_permissions'])
+        return model_to_dict(self.user,fields=['id','username','email','is_staff','date_joined','user_permissions'])
 
 class Approver(models.Model):
     user=models.ForeignKey('auth.User',related_name='approver',on_delete=models.CASCADE)
@@ -236,4 +252,32 @@ class Leave(models.Model):
     reason=models.CharField(max_length=255)
     type=models.CharField(max_length=60)
     
+
+class ApiReport(models.Model):
+    label=models.CharField(max_length=255)
+    platform=models.CharField(max_length=255)
+    error_message=models.CharField(max_length=255)
+    function_name=models.CharField(max_length=255)
+    log=models.CharField(max_length=255)
+    user_id=models.CharField(max_length=255)
+
+
+class Banner(models.Model):
+    title=models.CharField(max_length=255)
+    logo=models.CharField(max_length=255)
+    redirect_url=models.CharField(max_length=255)
+    bannerable_type=models.CharField(max_length=255)
+    bannerable_id=models.CharField(max_length=255)
+
+
+class Exchange(models.Model):
+    id=models.IntegerField(primary_key=True)
+    flag=models.CharField(max_length=255)
+    unit=models.CharField(max_length=255)
+    code=models.CharField(max_length=255)
+    rate=models.CharField(max_length=255)
+    created_at=models.DateTimeField(default=datetime.now, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)    
+    # updated_by=models.ForeignKey('auth.User', related_name='owner_user', on_delete=models.CASCADE)
+
 
